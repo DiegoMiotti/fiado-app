@@ -1,0 +1,40 @@
+# Validación de Fiado 0.1.0
+
+Fecha: 2026-09-05. Entorno: Windows, JDK 17.0.11, Gradle 8.13, SDK Platform 36 revisión 2.
+
+## Ejecutado
+
+- `gradlew.bat testDebugUnitTest assembleDebug lintDebug --console plain`: **BUILD SUCCESSFUL**.
+- 6 tests unitarios, 0 errores, 0 fallos, 0 omitidos.
+- Lint: 0 errores y 7 advertencias informativas de versiones más recientes de dependencias/Gradle y target Android. Se mantiene API 36 por el alcance solicitado; no se ocultaron advertencias mediante baseline.
+- APK compilado: `app/build/outputs/apk/debug/app-debug.apk`, 24.948.972 bytes.
+- Firma de depuración: verificada con `apksigner verify`.
+- Metadatos inspeccionados con `aapt dump badging`: paquete `ar.com.fiado`, versión 0.1.0, min/target/compile API 36, actividad principal presente.
+- El manifiesto final no pide Internet ni lectura general de contactos. AndroidX incorpora su permiso interno de receptor no exportado.
+- `git diff --check`: sin errores de whitespace.
+- ADB: ningún dispositivo conectado. No se encontraron AVDs ni imágenes de sistema instaladas.
+
+SHA-256 del APK validado:
+
+```text
+4EDFF64CB75E3BB3390FE76EE859D3CBBD938E5EB13308592FDF3ED208E17382
+```
+
+Informes locales regenerables: `app/build/reports/tests/testDebugUnitTest/index.html` y `app/build/reports/lint-results-debug.html`. No se versionan los binarios ni los informes de build.
+
+## Pendiente en teléfono Android 16
+
+No se ejecutó la app en un dispositivo o emulador. No se ha verificado visualmente la pantalla ni el comportamiento del proveedor de contactos o de WhatsApp. La compilación y los tests no demuestran esas integraciones.
+
+1. Instalar el APK y abrir Fiado. Registrar modelo, versión de Android y versión/variante de WhatsApp usada.
+2. Ingresar `1500,50`; comprobar el saludo de la hora actual y el importe `$1.500,50`.
+3. Copiar sin contacto, pegar en un campo de texto y comparar el contenido. Repetir sin conexión.
+4. Elegir un contacto de prueba con varios teléfonos, confirmar el número seleccionado y cancelar una segunda selección: el borrador debe conservarse.
+5. Probar un teléfono local: debe pedir formato internacional. Corregirlo sin modificar la agenda.
+6. Abrir WhatsApp con un contacto de prueba autorizado: confirmar chat correcto y texto completo; no es necesario pulsar Enviar para validar la transferencia.
+7. Si hay WhatsApp y Business, comprobar el selector. Sin WhatsApp, comprobar navegador o aviso con alternativa de copia.
+8. Probar número sin WhatsApp, regreso a Fiado, rotación, fuente grande y teclado abierto. Confirmar que no se pierde el borrador y los botones son accesibles.
+9. Probar el cambio de franja horaria: el saludo debe actualizarse al volver y al copiar/abrir.
+10. Pulsar Limpiar y comprobar que se borren contacto e importe.
+
+No se enviaron mensajes reales. No se declara confirmación de envío, recepción o entrega.

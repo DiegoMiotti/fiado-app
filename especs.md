@@ -1,6 +1,6 @@
 # Fiado — especificación del MVP para Android 16
 
-Estado: lista para que GPT Sol o Terra complete las decisiones técnicas e implemente la primera prueba.
+Estado: MVP implementado y compilado. Pruebas unitarias y lint aprobados; integración en teléfono pendiente. Ver README.md y VALIDACION.md.
 Fecha: 2026-09-05.
 
 ## 1. Objetivo
@@ -132,13 +132,13 @@ Automatizar pruebas unitarias de reglas horarias, dinero y codificación/validac
 
 Leer este archivo, inspeccionar el entorno e implementar el MVP sin expandir el alcance. Completar las siguientes decisiones con valores y evidencia reales durante la implementación:
 
-- [ ] Identificador de aplicación y versiones de herramientas elegidas.
-- [ ] Mecanismo de validación de teléfonos y tratamiento de entradas ambiguas.
+- [x] Identificador de aplicación y versiones de herramientas elegidas.
+- [x] Mecanismo de validación de teléfonos y tratamiento de entradas ambiguas.
 - [ ] Estrategia de resolución de WhatsApp y variantes instalada(s) probada(s).
-- [ ] Proyecto Android completo y Gradle Wrapper.
-- [ ] Pruebas unitarias ejecutadas, comando y resultado.
-- [ ] APK de prueba compilado, con ruta exacta; si falta SDK/JDK, documentar el bloqueo sin declarar compilación exitosa.
-- [ ] README con requisitos, apertura en Android Studio, compilación, instalación del APK y pasos de prueba manual.
+- [x] Proyecto Android completo y Gradle Wrapper.
+- [x] Pruebas unitarias ejecutadas, comando y resultado.
+- [x] APK de prueba compilado, con ruta exacta; si falta SDK/JDK, documentar el bloqueo sin declarar compilación exitosa.
+- [x] README con requisitos, apertura en Android Studio, compilación, instalación del APK y pasos de prueba manual.
 - [ ] Registro breve de dispositivo/API, pruebas reales de integración y limitaciones pendientes.
 
 Trabajar primero en generación/copia; después integrar contactos y apertura de WhatsApp. No crear infraestructura adicional ni requerir credenciales para esta prueba.

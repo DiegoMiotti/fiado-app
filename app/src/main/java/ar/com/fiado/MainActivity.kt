@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
 import android.net.Uri
+import androidx.core.net.toUri
 import android.os.Bundle
 import android.provider.ContactsContract
 import androidx.activity.ComponentActivity
@@ -146,7 +147,7 @@ class MainActivity : ComponentActivity() {
 
  private fun openWhatsApp(phone: String, message: String): Boolean {
   if (MessageRules.internationalPhone(phone) == null) return false
-  val uri = Uri.parse(MessageRules.whatsappUrl(phone, message))
+  val uri = MessageRules.whatsappUrl(phone, message).toUri()
   val options = listOf("com.whatsapp", "com.whatsapp.w4b").map { pkg ->
    Intent(Intent.ACTION_VIEW, uri).setPackage(pkg)
   }.filter { it.resolveActivity(packageManager) != null }

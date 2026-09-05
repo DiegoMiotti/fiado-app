@@ -16,14 +16,35 @@ object MessageRules {
   else -> "Hola buenas noches"
  }
  fun amount(raw: String): BigDecimal? {
-  if (!Regex("[0-9]{1,9}([.,][0-9]{1,2})?").matches(raw)) return null
-  return raw.replace(',', '.').toBigDecimalOrNull()?.takeIf {
-   it > BigDecimal.ZERO && it <= BigDecimal("999999999.99")
+  if (raw.isEmpty() || !Regex("[0-9.]+").matches(raw)) return null
+  if (raw.startsWith(".") || raw.endsWith(".") || ".." in raw) return null
+  val parts = raw.split(".")
+  val digits = if (parts.size == 1) {
+   if (!Regex("[0-9]{1,9}").matches(raw)) return null
+   raw
+  } else {
+   if (!Regex("[0-9]{1,3}").matches(parts.first())) return null
+   if (parts.drop(1).any { !Regex("[0-9]{3}").matches(it) }) return null
+   val joined = parts.joinToString("")
+   if (joined.length !in 1..9 || !Regex("[0-9]{1,9}").matches(joined)) return null
+   // Rechazar ceros a la izquierda en formato con miles (ej: "01.500").
+   if (joined.length > 1 && joined.startsWith("0")) return null
+   joined
   }
+  return digits.toBigDecimalOrNull()?.takeIf {
+   it > BigDecimal.ZERO && it <= BigDecimal("999999999")
+  }
+ }
+ /** Formatea dígitos sueltos a vista con punto de miles, ej: "1500" -> "1.500". */
+ fun formatInput(raw: String): String {
+  val digits = raw.filter(Char::isDigit).take(9).trimStart('0')
+  if (digits.isEmpty()) return ""
+  return DecimalFormat("#,##0", DecimalFormatSymbols(Locale.forLanguageTag("es-AR")))
+   .format(digits.toBigDecimalOrNull() ?: return "")
  }
  fun message(raw: String, clock: Clock = Clock.systemDefaultZone(), contactName: String = ""): String? {
   val value = amount(raw) ?: return null
-  val formatted = DecimalFormat("#,##0.00", DecimalFormatSymbols(Locale.forLanguageTag("es-AR"))).format(value)
+  val formatted = DecimalFormat("#,##0", DecimalFormatSymbols(Locale.forLanguageTag("es-AR"))).format(value)
   val name = contactName.trim().replace(Regex("\\s+"), " ")
   val recipient = if (name.isEmpty()) "" else " $name"
   return "${greeting(LocalTime.now(clock))}$recipient, lo de hoy es: $$formatted"

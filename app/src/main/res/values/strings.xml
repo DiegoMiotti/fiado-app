@@ -10,8 +10,8 @@
  <string name="phone_help">Buenos Aires: usamos +54 9 11 y los 8 dígitos locales. No modifica tu contacto.</string>
  <string name="phone_error">Ingresá 8 dígitos locales o un celular de Buenos Aires (+54 9 11).</string>
  <string name="amount">Importe de hoy</string>
- <string name="amount_help">Pesos argentinos · Sin puntos de miles, hasta 2 decimales.</string>
- <string name="amount_error">Ingresá un importe mayor a 0 y hasta 999.999.999,99, sin miles.</string>
+  <string name="amount_help">Pesos argentinos · Solo enteros, con punto de miles.</string>
+  <string name="amount_error">Ingresá un importe mayor a 0 y hasta 999.999.999.</string>
  <string name="preview">TU MENSAJE</string>
  <string name="preview_empty">Ingresá el importe para preparar el mensaje.</string>
  <string name="copy">Copiar mensaje</string>

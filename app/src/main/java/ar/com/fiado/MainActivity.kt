@@ -112,9 +112,9 @@ class MainActivity : ComponentActivity() {
       Text(stringResource(R.string.normalized_phone, normalized), style = MaterialTheme.typography.bodyMedium)
      }
     }
-    OutlinedTextField(value = amount, onValueChange = model::amount, modifier = Modifier.fillMaxWidth(),
-     label = { Text(stringResource(R.string.amount)) }, prefix = { Text("$") }, singleLine = true,
-     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+     OutlinedTextField(value = amount, onValueChange = { model.amount(MessageRules.formatInput(it)) }, modifier = Modifier.fillMaxWidth(),
+      label = { Text(stringResource(R.string.amount)) }, prefix = { Text("$") }, singleLine = true,
+      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
      isError = amount.isNotEmpty() && message == null,
      supportingText = { Text(stringResource(if (amount.isNotEmpty() && message == null) R.string.amount_error else R.string.amount_help)) })
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer), modifier = Modifier.fillMaxWidth()) {

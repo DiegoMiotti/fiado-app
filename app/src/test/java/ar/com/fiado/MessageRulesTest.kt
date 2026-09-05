@@ -14,28 +14,37 @@ class MessageRulesTest {
     assertEquals(expected, MessageRules.greeting(LocalTime.parse(time)))
   }
  }
- @Test fun exactMessageAndDecimals() {
-  assertEquals("Hola buen día, lo de hoy es: $1.500,00", MessageRules.message("1500", clock))
-  assertEquals("Hola buen día, lo de hoy es: $1.500,50", MessageRules.message("1500,5", clock))
-  assertEquals(MessageRules.message("1500,5", clock), MessageRules.message("1500.50", clock))
-  assertNotNull(MessageRules.amount("999999999,99"))
-  assertNotNull(MessageRules.amount("0,01"))
+ @Test fun exactMessageWithoutCents() {
+  assertEquals("Hola buen día, lo de hoy es: $1.500", MessageRules.message("1500", clock))
+  assertEquals("Hola buen día, lo de hoy es: $1.500", MessageRules.message("1.500", clock))
+  assertEquals(MessageRules.message("1500", clock), MessageRules.message("1.500", clock))
+  assertEquals("Hola buen día, lo de hoy es: $1.500.000", MessageRules.message("1500000", clock))
+  assertNotNull(MessageRules.amount("999.999.999"))
+  assertNotNull(MessageRules.amount("1"))
  }
- @Test fun includesContactNameForEveryGreeting() {
-  assertEquals("Hola buen día María López, lo de hoy es: $1.500,00",
-   MessageRules.message("1500", clock, "  María   López  "))
-  assertEquals("Hola buenas tardes Juan, lo de hoy es: $1.500,00",
-   MessageRules.message("1500", Clock.offset(clock, Duration.ofHours(4)), "Juan"))
-  assertEquals("Hola buenas noches Juan, lo de hoy es: $1.500,00",
-   MessageRules.message("1500", Clock.offset(clock, Duration.ofHours(12)), "Juan"))
-  assertEquals("Hola buen día, lo de hoy es: $1.500,00",
-   MessageRules.message("1500", clock, "   "))
+ @Test fun liveThousandFormatting() {
+  assertEquals("1.500", MessageRules.formatInput("1500"))
+  assertEquals("1.500", MessageRules.formatInput("1.500"))
+  assertEquals("1.500.000", MessageRules.formatInput("1500000"))
+  assertEquals("", MessageRules.formatInput(""))
+  assertEquals("", MessageRules.formatInput("abc"))
  }
- @Test fun invalidAmounts() {
-  listOf("", "0", "-1", "1.500", "1,2.3", "NaN", "1000000000", " 20", "1e3").forEach {
-   assertNull(it, MessageRules.amount(it))
+  @Test fun includesContactNameForEveryGreeting() {
+   assertEquals("Hola buen día María López, lo de hoy es: $1.500",
+    MessageRules.message("1500", clock, "  María   López  "))
+   assertEquals("Hola buenas tardes Juan, lo de hoy es: $1.500",
+    MessageRules.message("1500", Clock.offset(clock, Duration.ofHours(4)), "Juan"))
+   assertEquals("Hola buenas noches Juan, lo de hoy es: $1.500",
+    MessageRules.message("1500", Clock.offset(clock, Duration.ofHours(12)), "Juan"))
+   assertEquals("Hola buen día, lo de hoy es: $1.500",
+    MessageRules.message("1500", clock, "   "))
   }
- }
+  @Test fun invalidAmounts() {
+   listOf("", "0", "-1", "1500,5", "1500.50", "1.500,00", "1,2.3", "NaN", "1000000000", " 20", "1e3",
+    "1.50.0", ".500", "1500.", "01.500", "15.00").forEach {
+    assertNull(it, MessageRules.amount(it))
+   }
+  }
  @Test fun normalizesBuenosAiresMobileFormats() {
   listOf("23456789", "15 2345-6789", "11 2345-6789", "(011) 2345-6789",
    "11 15 2345-6789", "(011) 15 2345-6789", "+54 9 11 2345-6789",

@@ -1,4 +1,42 @@
-# Validación de Fiado 0.1.0
+# Validación de Fiado 0.2.0 — teléfono real
+
+Fecha: 2026-09-05. Dispositivo: Motorola Edge 50 Fusion, Android 15 (API 35), conectado por USB. WhatsApp estándar instalado.
+
+## Resultados actuales
+
+- 7 pruebas unitarias aprobadas: saludo, zona horaria, importes, formatos argentinos y URL.
+- 3 pruebas instrumentadas aprobadas en el Motorola: generación/copia sin contacto, rechazo de importe inválido, recreación de Activity con borrador y acción Limpiar.
+- La primera ejecución de copia falló al perder el foco. El test ahora espera foco/portapapeles; la ejecución completa pasó con el teléfono desbloqueado y sin interacción concurrente.
+- Selección real de contacto y normalización al prefijo +54 9 11 verificadas en pantalla.
+- Apertura de WhatsApp y texto prellenado verificados visualmente. El usuario confirmó que el chat abierto correspondía al destinatario esperado.
+- No se pulsó Enviar. Puede quedar el borrador de prueba en WhatsApp.
+- Corregido el contraste de los iconos de las barras del sistema con el tema oscuro del teléfono. Corrección instalada y revisada visualmente.
+- Compilación final y tests unitarios aprobados; lint: 0 errores y 10 advertencias de actualización de versiones.
+- Firma del APK final verificada con apksigner. Instalación final por ADB exitosa.
+- Las pruebas instrumentadas y de WhatsApp se ejecutaron antes del último ajuste exclusivamente visual de las barras; después se repitieron compilación, tests unitarios, lint e inspección visual.
+
+APK final: app/build/outputs/apk/debug/app-debug.apk, versión 0.2.0, min SDK 35, target/compile SDK 36.
+
+SHA-256:
+```text
+88BC6BDA3EAE71E9D47879C95A710D4FDE8AEF135B945DDB07F6D6EC9CFD83C3
+```
+
+Comandos usados:
+```powershell
+.\gradlew.bat testDebugUnitTest assembleDebug lintDebug --console plain
+.\gradlew.bat connectedDebugAndroidTest lintDebug --console plain
+```
+
+Informes regenerables en app/build/reports/tests, app/build/reports/androidTests y app/build/reports/lint-results-debug.html. Capturas con datos personales excluidas de Git y eliminadas tras la revisión; no se guardan nombres ni teléfonos de la prueba en esta documentación.
+
+## Pendientes
+
+Prueba en Android 16, WhatsApp Business/selector entre variantes, dispositivo sin WhatsApp, proveedor de contactos alternativo, fuente grande y cambios horarios reales. Las reglas horarias sí están cubiertas por tests unitarios. No se validó envío ni entrega de mensajes.
+
+---
+
+## Registro histórico de Fiado 0.1.0 (antes de conectar el teléfono)
 
 Fecha: 2026-09-05. Entorno: Windows, JDK 17.0.11, Gradle 8.13, SDK Platform 36 revisión 2.
 

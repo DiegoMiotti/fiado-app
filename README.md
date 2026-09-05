@@ -1,11 +1,11 @@
-# Fiado para Android 16
+# Fiado para Android 15 y 16
 
 Primera prueba de una app nativa para preparar el mensaje del fiado de hoy. Ingresás un importe, elegís un teléfono desde contactos y copiás el texto o abrís WhatsApp con el mensaje preparado. **El envío se confirma dentro de WhatsApp.**
 
 ## Uso
 
 1. Tocá **Elegir contacto** y elegí un número.
-2. Si el número no tiene formato internacional, corregilo en **Número para WhatsApp**, empezando con `+` y código de país. Esto no modifica la agenda. No se adivinan prefijos de números locales.
+2. La app completa **+54 9 11** para los 8 dígitos locales y normaliza formatos como 11…, 011… y 011 15…. Revisá el destino mostrado. Esto no modifica la agenda y aplica a celulares del área 11.
 3. Ingresá el importe sin puntos de miles: `1500`, `1500,50` o `1500.50`.
 4. Revisá el mensaje. **Copiar mensaje** también funciona sin contacto y sin Internet.
 5. Tocá **Abrir WhatsApp**, revisá el destinatario y pulsá Enviar allí.
@@ -31,7 +31,7 @@ Es un artefacto local generado, excluido de Git. No es un APK de publicación.
 
 ## Instalar en el teléfono
 
-El dispositivo debe tener Android 16 o superior; la validación objetivo es Android 16. Transferir el APK al teléfono, abrirlo y autorizar la instalación desde la app usada para abrirlo si Android lo solicita.
+El dispositivo debe tener Android 15 o superior. El teléfono conectado reportó Android 15; se mantiene Android 16 como versión objetivo. Transferir el APK al teléfono, abrirlo y autorizar la instalación desde la app usada para abrirlo si Android lo solicita.
 
 Alternativa con depuración USB habilitada y el equipo autorizado:
 
@@ -43,9 +43,9 @@ Alternativa con depuración USB habilitada y el equipo autorizado:
 ## Decisiones técnicas
 
 - Kotlin 2.1.20, Gradle 8.13, AGP 8.13.0, Compose BOM 2025.04.01.
-- `applicationId`: `ar.com.fiado`; min/target/compile SDK 36.
+- `applicationId`: `ar.com.fiado`; min SDK 35; target/compile SDK 36.
 - Selección de teléfono con el proveedor de contactos y permiso temporal sobre la URI seleccionada; sin permiso general de agenda.
-- libphonenumber 8.13.55 valida el número con prefijo explícito. Esto no comprueba si está registrado en WhatsApp.
+- libphonenumber 8.13.55 valida el número normalizado con +54 9 11. Esto no comprueba si está registrado en WhatsApp.
 - Se prueban manejadores públicos de enlaces de WhatsApp y WhatsApp Business. Con ambos, se muestra selector. Si ninguno resuelve, se abre el enlace HTTPS con el sistema (puede abrir el navegador).
 - Portapapeles solo al pulsar Copiar; sin lectura del portapapeles.
 - Sin permisos de Internet, contactos completos, notificaciones o accesibilidad.

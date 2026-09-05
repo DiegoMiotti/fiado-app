@@ -1,6 +1,6 @@
 # Fiado — especificación del MVP para Android 16
 
-Estado: MVP implementado y compilado. Pruebas unitarias y lint aprobados; integración en teléfono pendiente. Ver README.md y VALIDACION.md.
+Estado: MVP 0.2.0 instalado y probado en Motorola con Android 15; contactos y apertura de WhatsApp verificados. Android 16 pendiente. Ver README.md y VALIDACION.md.
 Fecha: 2026-09-05.
 
 ## 1. Objetivo
@@ -92,7 +92,7 @@ Copiar usa el portapapeles del sistema solo cuando el usuario pulsa el botón. C
 ## 7. Implementación propuesta
 
 - App nativa: Kotlin, Jetpack Compose y Material 3, una Activity.
-- `minSdk = 36`, `targetSdk = 36`, `compileSdk = 36` para limitar esta primera prueba al entorno pedido. Compatibilidad con versiones anteriores queda fuera de alcance.
+- `minSdk = 35`, `targetSdk = 36`, `compileSdk = 36`. Se amplía la compatibilidad a Android 15 para el teléfono real conectado.
 - Elegir y fijar versiones estables y compatibles de JDK, Gradle, Android Gradle Plugin y Kotlin tras revisar el entorno. Incluir Gradle Wrapper.
 - Separar funciones de saludo, validación/formato monetario y construcción del enlace de las operaciones Android; inyectar reloj para probar límites horarios.
 - Estado de pantalla en ViewModel y mecanismo de restauración del borrador apropiado; sin persistencia duradera del historial.
@@ -152,3 +152,9 @@ Consultadas el 2026-09-05; verificar nuevamente al implementar si cambian las AP
 - [Android: configuración del SDK de Android 16](https://developer.android.com/about/versions/16/setup-sdk).
 
 Estas referencias sustentan la integración propuesta; el funcionamiento en el teléfono todavía debe probarse. Los horarios, moneda, límites de importe y alcance son decisiones de producto de esta especificación.
+
+## Cambio de alcance durante la prueba (2026-09-05)
+
+El usuario indicó que todos los números de esta prueba son celulares del área 11: +54 9 11 y 8 dígitos locales. Esta decisión reemplaza el requisito anterior de no completar prefijos. Normalizar 8 dígitos, 15 + 8 dígitos, 11 + 8 dígitos, 011 + 8 dígitos, 11 15 + 8 dígitos, 011 15 + 8 dígitos y variantes completas 54 11 / 54 9 11, con o sin +. Rechazar otros países, áreas, extensiones y longitudes incorrectas sin truncarlos. Mostrar el destino normalizado y conservar el teléfono original de la agenda. La provincia tiene otras áreas; esta prueba se limita al prefijo 11 indicado por el usuario.
+
+El Motorola Edge 50 Fusion conectado reportó Android 15/API 35. Por ello minSdk pasa a 35 y target/compile permanecen en 36. La prueba en Android 16 sigue pendiente.

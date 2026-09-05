@@ -66,3 +66,6 @@ Consultar [VALIDACION.md](VALIDACION.md) para los resultados reales y los pasos 
 Alcance completo: [especs.md](especs.md).
 
 Fuentes técnicas: [Android 16 SDK](https://developer.android.com/about/versions/16/setup-sdk), [AGP 8.13](https://developer.android.com/build/releases/agp-8-13-0-release-notes), [intents y contactos](https://developer.android.com/guide/components/intents-common), [WhatsApp click-to-chat](https://faq.whatsapp.com/5913398998672934).
+
+Versión 0.2.1: el mensaje incluye el nombre completo del contacto, por ejemplo «Hola buen día Juan, lo de hoy es: $1.500,00». Sin contacto se omite el nombre. APK listo para instalar: [Fiado-0.2.1.apk](Fiado-0.2.1.apk).
+

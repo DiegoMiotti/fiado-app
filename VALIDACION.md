@@ -1,3 +1,13 @@
+# Validación de Fiado 0.2.1
+
+Nueva plantilla con nombre del contacto: «Hola buen día Juan, lo de hoy es: $1.500,00». Por la tarde y noche usa «Hola buenas tardes» y «Hola buenas noches». Sin contacto, omite el nombre.
+
+Compilación, 8 pruebas unitarias y lint aprobados. El nombre se incorpora a vista previa, copia y enlace de WhatsApp. Esta versión no volvió a probarse en el dispositivo; la validación física de 0.2.0 queda registrada abajo.
+
+APK para instalar: Fiado-0.2.1.apk en la raíz. Se conserva Fiado-0.2.0.apk como versión anterior.
+
+---
+
 # Validación de Fiado 0.2.0 — teléfono real
 
 Fecha: 2026-09-05. Dispositivo: Motorola Edge 50 Fusion, Android 15 (API 35), conectado por USB. WhatsApp estándar instalado.

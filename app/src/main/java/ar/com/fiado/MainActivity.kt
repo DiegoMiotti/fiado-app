@@ -60,7 +60,7 @@ class MainActivity : ComponentActivity() {
   val originalPhone by model.originalPhone.collectAsStateWithLifecycle()
   val phone by model.phone.collectAsStateWithLifecycle()
   var clock by remember { mutableStateOf(Clock.systemDefaultZone()) }
-  val message = MessageRules.message(amount, clock)
+  val message = MessageRules.message(amount, clock, name)
   val scope = rememberCoroutineScope()
   val snackbar = remember { SnackbarHostState() }
   val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -125,14 +125,14 @@ class MainActivity : ComponentActivity() {
     }
     OutlinedButton(onClick = {
      clock = Clock.fixed(java.time.Instant.now(), java.time.ZoneId.systemDefault())
-     MessageRules.message(amount, clock)?.let { text ->
+     MessageRules.message(amount, clock, name)?.let { text ->
       try { getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText(getString(R.string.app_name), text)) }
       catch (_: RuntimeException) { notice(R.string.copy_error) }
      }
     }, enabled = message != null, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.copy)) }
     Button(onClick = {
      clock = Clock.fixed(java.time.Instant.now(), java.time.ZoneId.systemDefault())
-     MessageRules.message(amount, clock)?.let { text ->
+     MessageRules.message(amount, clock, name)?.let { text ->
       if (!openWhatsApp(phone, text)) notice(R.string.whatsapp_error)
      }
     }, enabled = message != null && originalPhone.isNotEmpty() && MessageRules.internationalPhone(phone) != null,

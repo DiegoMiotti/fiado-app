@@ -11,9 +11,9 @@ import java.util.Locale
 
 object MessageRules {
  fun greeting(time: LocalTime): String = when (time.hour) {
-  in 6..11 -> "Buenos días"
-  in 12..19 -> "Buenas tardes"
-  else -> "Buenas noches"
+  in 6..11 -> "Hola buen día"
+  in 12..19 -> "Hola buenas tardes"
+  else -> "Hola buenas noches"
  }
  fun amount(raw: String): BigDecimal? {
   if (!Regex("[0-9]{1,9}([.,][0-9]{1,2})?").matches(raw)) return null
@@ -21,10 +21,12 @@ object MessageRules {
    it > BigDecimal.ZERO && it <= BigDecimal("999999999.99")
   }
  }
- fun message(raw: String, clock: Clock = Clock.systemDefaultZone()): String? {
+ fun message(raw: String, clock: Clock = Clock.systemDefaultZone(), contactName: String = ""): String? {
   val value = amount(raw) ?: return null
   val formatted = DecimalFormat("#,##0.00", DecimalFormatSymbols(Locale.forLanguageTag("es-AR"))).format(value)
-  return "${greeting(LocalTime.now(clock))}, el fiado de hoy es $$formatted."
+  val name = contactName.trim().replace(Regex("\\s+"), " ")
+  val recipient = if (name.isEmpty()) "" else " $name"
+  return "${greeting(LocalTime.now(clock))}$recipient, lo de hoy es: $$formatted"
  }
  // This pilot uses Buenos Aires mobile numbers with the user-specified +54 9 11 prefix.
  // Match complete known formats; never truncate a different area code or country.

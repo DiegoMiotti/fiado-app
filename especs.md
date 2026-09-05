@@ -9,7 +9,7 @@ Crear una app Android sencilla que permita ingresar el importe del fiado de hoy,
 
 Ejemplo de mensaje final:
 
-> Buenos días, el fiado de hoy es $1.500,00.
+> Hola buen día, lo de hoy es: $1.500,00
 
 La generación del texto es automática mediante una plantilla local: no requiere inteligencia artificial ni servicios externos. En esta prueba, abrir WhatsApp prepara el mensaje; el usuario pulsa Enviar allí. No prometer envío automático ni confirmación de entrega.
 
@@ -44,15 +44,15 @@ Actualizar la vista previa al cambiar el importe. Deshabilitar Copiar si el impo
 
 ## 4. Reglas del mensaje
 
-Plantilla exacta: `{saludo}, el fiado de hoy es ${importeFormateado}.`
+Plantilla exacta: `{saludo} {nombreContacto}, lo de hoy es: ${importeFormateado}`. Sin contacto o nombre vacío, omitir el nombre y el espacio anterior a la coma. Usar el nombre completo guardado en la agenda, quitando espacios sobrantes.
 
 El saludo toma la hora local y zona horaria actuales del dispositivo:
 
 | Intervalo local | Saludo |
 | --- | --- |
-| 06:00 inclusive a 12:00 exclusive | Buenos días |
-| 12:00 inclusive a 20:00 exclusive | Buenas tardes |
-| 20:00 inclusive a 06:00 exclusive | Buenas noches |
+| 06:00 inclusive a 12:00 exclusive | Hola buen día |
+| 12:00 inclusive a 20:00 exclusive | Hola buenas tardes |
+| 20:00 inclusive a 06:00 exclusive | Hola buenas noches |
 
 Son franjas iniciales ajustables en código, sin pantalla de configuración para el MVP. Recalcular al volver al primer plano, al cambiar de franja con la pantalla abierta y justo antes de copiar o abrir WhatsApp. Actualizar la vista previa con el mismo texto que se transfiere para evitar un saludo desactualizado.
 
@@ -63,7 +63,7 @@ Importes:
 - Rechazar vacío, cero, negativos, letras, separadores múltiples y más de dos decimales. No redondear silenciosamente ni interpretar `1.500` como mil quinientos.
 - Mostrar siempre dos decimales y miles con punto: `1500` produce `$1.500,00`.
 - Representar el dinero con decimal exacto o centavos enteros; no usar Float/Double.
-- No agregar comillas, nombre del contacto ni otras frases al mensaje.
+- Incluir el nombre del contacto después del saludo; no agregar comillas, punto final ni otras frases.
 
 ## 5. Contactos de Android
 
@@ -109,11 +109,11 @@ Envíos programados, masivos o en segundo plano; automatización mediante accesi
 
 | Caso | Resultado esperado |
 | --- | --- |
-| Hora 05:59 / 06:00 | Buenas noches / Buenos días |
-| Hora 11:59 / 12:00 | Buenos días / Buenas tardes |
-| Hora 19:59 / 20:00 / 00:00 | Buenas tardes / Buenas noches / Buenas noches |
+| Hora 05:59 / 06:00 | Hola buenas noches / Hola buen día |
+| Hora 11:59 / 12:00 | Hola buen día / Hola buenas tardes |
+| Hora 19:59 / 20:00 / 00:00 | Hola buenas tardes / Hola buenas noches / Hola buenas noches |
 | Cambia la franja con la pantalla abierta o la app en segundo plano | Vista previa y próxima acción usan el saludo actualizado |
-| Importe `1500`, a las 09:00 | `Buenos días, el fiado de hoy es $1.500,00.` |
+| Importe `1500`, a las 09:00 | `Hola buen día, lo de hoy es: $1.500,00` |
 | Importe `1500,5` o `1500.50` | Mismo importe final: `$1.500,50` |
 | Entrada inválida o fuera del límite | Error claro; copiar y abrir deshabilitados |
 | Copiar sin contacto y sin red | Texto exacto disponible para pegar |

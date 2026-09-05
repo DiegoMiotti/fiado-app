@@ -103,6 +103,11 @@ class MainActivity : ComponentActivity() {
       isError = MessageRules.internationalPhone(phone) == null,
       supportingText = { Text(stringResource(if (MessageRules.internationalPhone(phone) == null) R.string.phone_error else R.string.phone_help)) })
     }
+    if (originalPhone.isNotEmpty()) {
+     MessageRules.internationalPhone(phone)?.let { normalized ->
+      Text(stringResource(R.string.normalized_phone, normalized), style = MaterialTheme.typography.bodyMedium)
+     }
+    }
     OutlinedTextField(value = amount, onValueChange = model::amount, modifier = Modifier.fillMaxWidth(),
      label = { Text(stringResource(R.string.amount)) }, prefix = { Text("$") }, singleLine = true,
      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),

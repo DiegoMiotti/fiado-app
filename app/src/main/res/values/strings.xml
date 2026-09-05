@@ -7,8 +7,8 @@
  <string name="no_contact">Elegí a quién avisarle</string>
  <string name="phone">Número para WhatsApp</string>
  <string name="original_phone">En contactos: %1$s</string>
- <string name="phone_help">Usá + y código de país. Corregir aquí no modifica tu contacto.</string>
- <string name="phone_error">Ingresá un teléfono internacional válido con + y código de país.</string>
+ <string name="phone_help">Buenos Aires: usamos +54 9 11 y los 8 dígitos locales. No modifica tu contacto.</string>
+ <string name="phone_error">Ingresá 8 dígitos locales o un celular de Buenos Aires (+54 9 11).</string>
  <string name="amount">Importe de hoy</string>
  <string name="amount_help">Pesos argentinos · Sin puntos de miles, hasta 2 decimales.</string>
  <string name="amount_error">Ingresá un importe mayor a 0 y hasta 999.999.999,99, sin miles.</string>
@@ -24,4 +24,5 @@
  <string name="whatsapp_error">No se pudo abrir WhatsApp. Podés copiar el mensaje y pegarlo manualmente.</string>
  <string name="copy_error">No se pudo copiar. Podés seleccionar el texto del mensaje.</string>
  <string name="whatsapp_picker">Abrir con</string>
+ <string name="normalized_phone">WhatsApp: +%1$s</string>
 </resources>

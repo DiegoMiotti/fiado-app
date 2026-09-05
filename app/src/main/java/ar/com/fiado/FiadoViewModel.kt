@@ -12,7 +12,7 @@ class FiadoViewModel(private val saved: SavedStateHandle) : ViewModel() {
  fun contact(name: String, phone: String) {
   saved["name"] = name
   saved["originalPhone"] = phone
-  saved["phone"] = phone
+  saved["phone"] = MessageRules.internationalPhone(phone)?.let { "+$it" } ?: phone
  }
  fun clear() {
   listOf("amount", "name", "originalPhone", "phone").forEach { saved[it] = "" }

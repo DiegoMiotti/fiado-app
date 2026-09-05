@@ -26,13 +26,30 @@ object MessageRules {
   val formatted = DecimalFormat("#,##0.00", DecimalFormatSymbols(Locale.forLanguageTag("es-AR"))).format(value)
   return "${greeting(LocalTime.now(clock))}, el fiado de hoy es $$formatted."
  }
- // An explicit country code avoids guessing from a local contact number.
+ // This pilot uses Buenos Aires mobile numbers with the user-specified +54 9 11 prefix.
+ // Match complete known formats; never truncate a different area code or country.
  fun internationalPhone(raw: String): String? {
-  if (!Regex("\\+[0-9 ()-]+").matches(raw)) return null
+  val input = raw.trim()
+  if (!Regex("\\+?[0-9 ()-]+").matches(input)) return null
+  val digits = input.filter(Char::isDigit)
+  val subscriber = when {
+   input.startsWith("+") && digits.matches(Regex("54911[0-9]{8}")) -> digits.takeLast(8)
+   input.startsWith("+") && digits.matches(Regex("5411[0-9]{8}")) -> digits.takeLast(8)
+   input.startsWith("+") -> return null
+   digits.matches(Regex("[0-9]{8}")) -> digits
+   digits.matches(Regex("15[0-9]{8}")) -> digits.drop(2)
+   digits.matches(Regex("11[0-9]{8}")) -> digits.drop(2)
+   digits.matches(Regex("011[0-9]{8}")) -> digits.drop(3)
+   digits.matches(Regex("1115[0-9]{8}")) -> digits.drop(4)
+   digits.matches(Regex("01115[0-9]{8}")) -> digits.drop(5)
+   digits.matches(Regex("54911[0-9]{8}")) -> digits.takeLast(8)
+   digits.matches(Regex("5411[0-9]{8}")) -> digits.takeLast(8)
+   else -> return null
+  }
   return try {
    val util = PhoneNumberUtil.getInstance()
-   val parsed = util.parse(raw, "ZZ")
-   if (!util.isValidNumber(parsed) || parsed.hasExtension()) null
+   val parsed = util.parse("+54911$subscriber", "ZZ")
+   if (!util.isValidNumber(parsed)) null
    else util.format(parsed, PhoneNumberUtil.PhoneNumberFormat.E164).removePrefix("+")
   } catch (_: com.google.i18n.phonenumbers.NumberParseException) { null }
  }

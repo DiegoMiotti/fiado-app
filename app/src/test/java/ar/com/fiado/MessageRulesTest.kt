@@ -1,4 +1,5 @@
 package ar.com.fiado
+
 import org.junit.Assert.*
 import org.junit.Test
 import java.time.*
@@ -25,16 +26,22 @@ class MessageRulesTest {
    assertNull(it, MessageRules.amount(it))
   }
  }
- @Test fun requiresExplicitValidInternationalPhone() {
-  assertEquals("16502530000", MessageRules.internationalPhone("+1 (650) 253-0000"))
-  listOf("16502530000", "01112345678", "+123", "+1ABC6502530000", "+16502530000 ext 9").forEach {
-   assertNull(it, MessageRules.internationalPhone(it))
+ @Test fun normalizesBuenosAiresMobileFormats() {
+  listOf("23456789", "15 2345-6789", "11 2345-6789", "(011) 2345-6789",
+   "11 15 2345-6789", "(011) 15 2345-6789", "+54 9 11 2345-6789",
+   "+54 11 2345-6789", "5491123456789", "541123456789").forEach {
+   assertEquals(it, "5491123456789", MessageRules.internationalPhone(it))
   }
+ }
+ @Test fun rejectsOtherAreasAndMalformedPhones() {
+  listOf("", "123", "+16502530000", "+54 9 221 2345678", "0221 2345678",
+   "+54 9 11 234567890", "11234567890", "11ABC23456789", "11 23456789 ext 9",
+   "++5491123456789").forEach { assertNull(it, MessageRules.internationalPhone(it)) }
  }
  @Test fun urlRoundTripPreservesText() {
   val message = MessageRules.message("1500", clock)!!
-  val url = MessageRules.whatsappUrl("+16502530000", message)
-  assertTrue(url.startsWith("https://wa.me/16502530000?text="))
+  val url = MessageRules.whatsappUrl("23456789", message)
+  assertTrue(url.startsWith("https://wa.me/5491123456789?text="))
   assertEquals(message, URLDecoder.decode(url.substringAfter("?text="), "UTF-8"))
   assertFalse(url.contains(" "))
  }

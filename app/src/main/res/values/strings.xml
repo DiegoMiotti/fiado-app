@@ -1,0 +1,27 @@
+<resources>
+ <string name="app_name">Fiado</string>
+ <string name="subtitle">Un mensaje claro, una cuenta al día.</string>
+ <string name="today">FIADO DE HOY</string>
+ <string name="choose_contact">Elegir contacto</string>
+ <string name="change_contact">Cambiar contacto</string>
+ <string name="no_contact">Elegí a quién avisarle</string>
+ <string name="phone">Número para WhatsApp</string>
+ <string name="original_phone">En contactos: %1$s</string>
+ <string name="phone_help">Usá + y código de país. Corregir aquí no modifica tu contacto.</string>
+ <string name="phone_error">Ingresá un teléfono internacional válido con + y código de país.</string>
+ <string name="amount">Importe de hoy</string>
+ <string name="amount_help">Pesos argentinos · Sin puntos de miles, hasta 2 decimales.</string>
+ <string name="amount_error">Ingresá un importe mayor a 0 y hasta 999.999.999,99, sin miles.</string>
+ <string name="preview">TU MENSAJE</string>
+ <string name="preview_empty">Ingresá el importe para preparar el mensaje.</string>
+ <string name="copy">Copiar mensaje</string>
+ <string name="open_whatsapp">Abrir WhatsApp</string>
+ <string name="send_help">Revisá el mensaje y tocá Enviar en WhatsApp.</string>
+ <string name="clear">Limpiar</string>
+ <string name="privacy">El mensaje se prepara en tu teléfono.</string>
+ <string name="contact_error">No se pudo leer el teléfono. Elegí otro contacto o intentá nuevamente.</string>
+ <string name="picker_error">No se pudo abrir el selector de contactos. Podés copiar el mensaje.</string>
+ <string name="whatsapp_error">No se pudo abrir WhatsApp. Podés copiar el mensaje y pegarlo manualmente.</string>
+ <string name="copy_error">No se pudo copiar. Podés seleccionar el texto del mensaje.</string>
+ <string name="whatsapp_picker">Abrir con</string>
+</resources>

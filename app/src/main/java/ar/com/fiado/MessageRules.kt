@@ -49,6 +49,20 @@ object MessageRules {
   val recipient = if (name.isEmpty()) "" else " $name"
   return "${greeting(LocalTime.now(clock))}$recipient, lo de hoy es: $$formatted"
  }
+ fun detailedMessage(previous: String, additions: List<String>, contactName: String = ""): String? {
+  val balance = amount(previous) ?: return null
+  if (additions.isEmpty()) return null
+  val values = additions.map { amount(it) ?: return null }
+  val formatter = DecimalFormat("#,##0", DecimalFormatSymbols(Locale.forLanguageTag("es-AR")))
+  val name = contactName.trim().replace(Regex("\\s+"), " ")
+  return buildString {
+   if (name.isNotEmpty()) append("$name, entonces sería:\n") else append("Entonces sería:\n")
+   append("${formatter.format(balance)} anterior\n")
+   values.forEach { append("+ ${formatter.format(it)}\n") }
+   append("----------\n")
+   append(formatter.format(values.fold(balance, BigDecimal::add)))
+  }
+ }
  // This pilot uses Buenos Aires mobile numbers with the user-specified +54 9 11 prefix.
  // Match complete known formats; never truncate a different area code or country.
  fun internationalPhone(raw: String): String? {

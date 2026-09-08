@@ -4,6 +4,26 @@ Primera prueba de una app nativa para preparar el mensaje del fiado de hoy. Ingr
 
 ## Uso
 
+### Opción Complicados
+
+Activá **Complicados**, cargá el **Saldo anterior** y un **Monto a sumar**.
+Podés tocar **Agregar otro monto** para sumar más importes y **Quitar** para sacar una fila.
+Ingresá pesos enteros: los puntos de miles se agregan automáticamente. Completá todos los campos para habilitar la copia.
+El total se calcula automáticamente. La vista previa, **Copiar mensaje** y **Abrir WhatsApp** usan este formato, sin productos:
+
+```text
+David, entonces sería:
+13.800 anterior
++ 9.200
+----------
+23.000
+```
+
+El nombre se incluye cuando hay un contacto elegido. El borrador detallado se conserva al recrear la pantalla;
+**Limpiar** borra los importes y vuelve al modo habitual.
+
+### Mensaje habitual
+
 1. Tocá **Elegir contacto** y elegí un número.
 2. La app completa **+54 9 11** para los 8 dígitos locales y normaliza formatos como 11…, 011… y 011 15…. Revisá el destino mostrado. Esto no modifica la agenda y aplica a celulares del área 11.
 3. Ingresá el importe sin puntos de miles: `1500`, `1500,50` o `1500.50`.

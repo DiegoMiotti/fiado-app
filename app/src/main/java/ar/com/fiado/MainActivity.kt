@@ -59,8 +59,13 @@ class MainActivity : ComponentActivity() {
   val name by model.name.collectAsStateWithLifecycle()
   val originalPhone by model.originalPhone.collectAsStateWithLifecycle()
   val phone by model.phone.collectAsStateWithLifecycle()
+  val complicated by model.complicated.collectAsStateWithLifecycle()
+  val previous by model.previous.collectAsStateWithLifecycle()
+  val additions by model.additions.collectAsStateWithLifecycle()
   var clock by remember { mutableStateOf(Clock.systemDefaultZone()) }
-  val message = MessageRules.message(amount, clock, name)
+  fun currentMessage(): String? = if (complicated) MessageRules.detailedMessage(previous, additions, name)
+   else MessageRules.message(amount, clock, name)
+  val message = currentMessage()
   val scope = rememberCoroutineScope()
   val snackbar = remember { SnackbarHostState() }
   val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -112,27 +117,52 @@ class MainActivity : ComponentActivity() {
       Text(stringResource(R.string.normalized_phone, normalized), style = MaterialTheme.typography.bodyMedium)
      }
     }
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+     Text(stringResource(R.string.complicated), style = MaterialTheme.typography.titleMedium)
+     Switch(checked = complicated, onCheckedChange = model::complicated)
+    }
+    if (complicated) {
+     Text(stringResource(R.string.complicated_help))
+     OutlinedTextField(value = previous, onValueChange = { model.previous(MessageRules.formatInput(it)) },
+      modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.previous_balance)) },
+      prefix = { Text("$") }, singleLine = true,
+      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+     additions.forEachIndexed { index, value ->
+      OutlinedTextField(value = value, onValueChange = { model.addition(index, MessageRules.formatInput(it)) },
+       modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.addition_amount, index + 1)) },
+       prefix = { Text("+ $") }, singleLine = true,
+       keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+       trailingIcon = if (additions.size > 1) { {
+        TextButton(onClick = { model.removeAmount(index) }) { Text(stringResource(R.string.remove_amount)) }
+       } } else null)
+     }
+     OutlinedButton(onClick = model::addAmount, modifier = Modifier.fillMaxWidth()) {
+      Text(stringResource(R.string.add_amount))
+     }
+    } else {
      OutlinedTextField(value = amount, onValueChange = { model.amount(MessageRules.formatInput(it)) }, modifier = Modifier.fillMaxWidth(),
       label = { Text(stringResource(R.string.amount)) }, prefix = { Text("$") }, singleLine = true,
       keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
      isError = amount.isNotEmpty() && message == null,
      supportingText = { Text(stringResource(if (amount.isNotEmpty() && message == null) R.string.amount_error else R.string.amount_help)) })
+    }
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer), modifier = Modifier.fillMaxWidth()) {
      Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
       Text(stringResource(R.string.preview), style = MaterialTheme.typography.labelMedium)
-      SelectionContainer { Text(message ?: stringResource(R.string.preview_empty), style = MaterialTheme.typography.titleLarge) }
+      SelectionContainer { Text(message ?: stringResource(if (complicated) R.string.detailed_preview_empty else R.string.preview_empty), style = MaterialTheme.typography.titleLarge) }
      }
     }
     OutlinedButton(onClick = {
      clock = Clock.fixed(java.time.Instant.now(), java.time.ZoneId.systemDefault())
-     MessageRules.message(amount, clock, name)?.let { text ->
+     currentMessage()?.let { text ->
       try { getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText(getString(R.string.app_name), text)) }
       catch (_: RuntimeException) { notice(R.string.copy_error) }
      }
     }, enabled = message != null, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.copy)) }
     Button(onClick = {
      clock = Clock.fixed(java.time.Instant.now(), java.time.ZoneId.systemDefault())
-     MessageRules.message(amount, clock, name)?.let { text ->
+     currentMessage()?.let { text ->
       if (!openWhatsApp(phone, text)) notice(R.string.whatsapp_error)
      }
     }, enabled = message != null && originalPhone.isNotEmpty() && MessageRules.internationalPhone(phone) != null,

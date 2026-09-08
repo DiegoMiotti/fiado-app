@@ -6,6 +6,26 @@ import java.time.*
 import java.net.URLDecoder
 
 class MessageRulesTest {
+ @Test fun detailedSumMatchesExample() {
+  assertEquals("David, entonces sería:\n13.800 anterior\n+ 9.200\n----------\n23.000",
+   MessageRules.detailedMessage("13.800", listOf("9200"), "David"))
+ }
+ @Test fun detailedSumSupportsSeveralAmountsAndLargeTotal() {
+  assertEquals("Entonces sería:\n999.999.999 anterior\n+ 1\n+ 9.200\n----------\n1.000.009.200",
+   MessageRules.detailedMessage("999999999", listOf("1", "9.200")))
+ }
+ @Test fun detailedSumRequiresEveryAmount() {
+  assertNull(MessageRules.detailedMessage("", listOf("9200")))
+  assertNull(MessageRules.detailedMessage("13800", emptyList()))
+  listOf("", "0", "-1", "1.50").forEach {
+   assertNull(MessageRules.detailedMessage("13800", listOf("9200", it)))
+  }
+ }
+ @Test fun detailedWhatsappPreservesLinesAndPlusSigns() {
+  val message = MessageRules.detailedMessage("13800", listOf("9200", "100"), "David")!!
+  val url = MessageRules.whatsappUrl("23456789", message)
+  assertEquals(message, URLDecoder.decode(url.substringAfter("?text="), "UTF-8"))
+ }
  private val clock = Clock.fixed(Instant.parse("2026-09-05T12:00:00Z"), ZoneId.of("America/Argentina/Buenos_Aires"))
  @Test fun greetingBoundaries() {
   mapOf("05:59" to "Hola buenas noches", "06:00" to "Hola buen día", "11:59" to "Hola buen día",

@@ -1,4 +1,11 @@
 <resources>
+ <string name="complicated">Complicados</string>
+ <string name="complicated_help">Cargá el saldo anterior y los montos que querés sumar. El total se calcula solo.</string>
+ <string name="previous_balance">Saldo anterior</string>
+ <string name="addition_amount">Monto a sumar %1$d</string>
+ <string name="add_amount">+ Agregar otro monto</string>
+ <string name="remove_amount">Quitar</string>
+ <string name="detailed_preview_empty">Completá el saldo anterior y cada monto para ver la suma.</string>
  <string name="app_name">Fiado</string>
  <string name="subtitle">Un mensaje claro, una cuenta al día.</string>
  <string name="today">FIADO DE HOY</string>

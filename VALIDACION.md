@@ -1,3 +1,16 @@
+# Opción Complicados — 2026-09-08
+
+Implementados saldo anterior, múltiples montos editables, eliminación de filas y suma automática.
+Vista previa, portapapeles y WhatsApp comparten el mismo generador de texto.
+Agregadas cuatro pruebas unitarias: ejemplo 13.800 + 9.200, varios importes y total grande,
+rechazo de campos incompletos o inválidos, y preservación de líneas y signos + en el enlace de WhatsApp.
+
+Se intentó ejecutar `gradlew.bat testDebugUnitTest assembleDebug lintDebug --console plain`.
+No pudo iniciarse: JAVA_HOME no está configurado y no hay java en PATH. Las nuevas pruebas no se ejecutaron
+y no se generó un APK. Quedan pendientes compilación, lint y verificación en teléfono.
+
+---
+
 # Validación de Fiado 0.2.1
 
 Nueva plantilla con nombre del contacto: «Hola buen día Juan, lo de hoy es: $1.500,00». Por la tarde y noche usa «Hola buenas tardes» y «Hola buenas noches». Sin contacto, omite el nombre.

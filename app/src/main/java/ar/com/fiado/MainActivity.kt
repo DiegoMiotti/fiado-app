@@ -63,7 +63,7 @@ class MainActivity : ComponentActivity() {
   val previous by model.previous.collectAsStateWithLifecycle()
   val additions by model.additions.collectAsStateWithLifecycle()
   var clock by remember { mutableStateOf(Clock.systemDefaultZone()) }
-  fun currentMessage(): String? = if (complicated) MessageRules.detailedMessage(previous, additions, name)
+  fun currentMessage(): String? = if (complicated) MessageRules.detailedMessage(previous, additions, clock)
    else MessageRules.message(amount, clock, name)
   val message = currentMessage()
   val scope = rememberCoroutineScope()
@@ -169,7 +169,6 @@ class MainActivity : ComponentActivity() {
      modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.open_whatsapp)) }
     Text(stringResource(R.string.send_help), style = MaterialTheme.typography.bodySmall)
     TextButton(onClick = model::clear, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.clear)) }
-    Text(stringResource(R.string.privacy), style = MaterialTheme.typography.bodySmall)
    }
   }
  }

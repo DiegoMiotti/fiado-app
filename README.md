@@ -12,14 +12,14 @@ Ingresá pesos enteros: los puntos de miles se agregan automáticamente. Complet
 El total se calcula automáticamente. La vista previa, **Copiar mensaje** y **Abrir WhatsApp** usan este formato, sin productos:
 
 ```text
-David, entonces sería:
+Hola buenas tardes, hasta el día de hoy sería:
 13.800 anterior
 + 9.200
 ----------
 23.000
 ```
 
-El nombre se incluye cuando hay un contacto elegido. El borrador detallado se conserva al recrear la pantalla;
+El saludo cambia según la hora del teléfono (buen día, buenas tardes o buenas noches). El borrador detallado se conserva al recrear la pantalla;
 **Limpiar** borra los importes y vuelve al modo habitual.
 
 ### Mensaje habitual

@@ -14,7 +14,7 @@ class FiadoDeviceTest {
  @get:Rule val compose = createAndroidComposeRule<MainActivity>()
 
  @Test fun generatesAndCopiesWithoutContact() {
-  compose.onNodeWithText("Importe de hoy").performTextInput("1500,50")
+  compose.onNodeWithText("Importe de hoy").performTextInput("1500")
   compose.onNodeWithText("Copiar mensaje").performScrollTo().assertIsEnabled().performClick()
   compose.waitUntil(timeoutMillis = 5000) {
    compose.activity.hasWindowFocus() &&
@@ -22,13 +22,13 @@ class FiadoDeviceTest {
   }
   compose.runOnIdle {
    val text = compose.activity.getSystemService(ClipboardManager::class.java).primaryClip?.getItemAt(0)?.text.toString()
-   assertEquals(MessageRules.message("1500,50"), text)
+   assertEquals(MessageRules.message("1500"), text)
   }
   compose.onNodeWithText("Abrir WhatsApp").assertIsNotEnabled()
  }
 
  @Test fun invalidAmountCannotBeCopied() {
-  compose.onNodeWithText("Importe de hoy").performTextInput("1.500")
+  compose.onNodeWithText("Importe de hoy").performTextInput("0")
   compose.onNodeWithText("Copiar mensaje").performScrollTo().assertIsNotEnabled()
   compose.onNodeWithText("Abrir WhatsApp").assertIsNotEnabled()
  }
@@ -36,8 +36,34 @@ class FiadoDeviceTest {
  @Test fun recreationPreservesDraftAndClearResetsIt() {
   compose.onNodeWithText("Importe de hoy").performTextInput("2500")
   compose.activityRule.scenario.recreate()
-  compose.onNodeWithText("Importe de hoy").assertTextContains("2500")
+  compose.onNodeWithText("Importe de hoy").assertTextContains("2.500")
   compose.onNodeWithText("Limpiar").performScrollTo().performClick()
+  compose.onNodeWithText("Copiar mensaje").performScrollTo().assertIsNotEnabled()
+ }
+
+ @Test fun detailedSumCopiesAndPreservesDraft() {
+  compose.onNode(isToggleable()).performScrollTo().performClick()
+  compose.onNodeWithText("Saldo anterior").performScrollTo().performTextInput("13800")
+  compose.onNodeWithText("Monto a sumar 1").performScrollTo().performTextInput("9200")
+  compose.onNodeWithText("+ Agregar otro monto").performScrollTo().performClick()
+  compose.onNodeWithText("Copiar mensaje").performScrollTo().assertIsNotEnabled()
+  compose.onNodeWithText("Monto a sumar 2").performScrollTo().performTextInput("100")
+  compose.activityRule.scenario.recreate()
+  compose.onNodeWithText("Monto a sumar 2").performScrollTo().assertTextContains("100")
+  compose.onAllNodesWithText("Quitar")[1].performScrollTo().performClick()
+  compose.onNodeWithText("Saldo anterior").performScrollTo().assertTextContains("13.800")
+  compose.onNodeWithText("Monto a sumar 1").performScrollTo().assertTextContains("9.200")
+  compose.onNodeWithText("Copiar mensaje").performScrollTo().assertIsEnabled().performClick()
+  compose.waitUntil(timeoutMillis = 5000) {
+   compose.activity.hasWindowFocus() &&
+    compose.activity.getSystemService(ClipboardManager::class.java).hasPrimaryClip()
+  }
+  compose.runOnIdle {
+   val text = compose.activity.getSystemService(ClipboardManager::class.java).primaryClip?.getItemAt(0)?.text.toString()
+   assertEquals(MessageRules.detailedMessage("13800", listOf("9200")), text)
+  }
+  compose.onNodeWithText("Limpiar").performScrollTo().performClick()
+  compose.onNode(isToggleable()).performScrollTo().assertIsOff()
   compose.onNodeWithText("Copiar mensaje").performScrollTo().assertIsNotEnabled()
  }
 }

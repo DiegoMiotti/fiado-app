@@ -49,14 +49,13 @@ object MessageRules {
   val recipient = if (name.isEmpty()) "" else " $name"
   return "${greeting(LocalTime.now(clock))}$recipient, lo de hoy es: $$formatted"
  }
- fun detailedMessage(previous: String, additions: List<String>, contactName: String = ""): String? {
+ fun detailedMessage(previous: String, additions: List<String>, clock: Clock = Clock.systemDefaultZone()): String? {
   val balance = amount(previous) ?: return null
   if (additions.isEmpty()) return null
   val values = additions.map { amount(it) ?: return null }
   val formatter = DecimalFormat("#,##0", DecimalFormatSymbols(Locale.forLanguageTag("es-AR")))
-  val name = contactName.trim().replace(Regex("\\s+"), " ")
   return buildString {
-   if (name.isNotEmpty()) append("$name, entonces sería:\n") else append("Entonces sería:\n")
+   append("${greeting(LocalTime.now(clock))}, hasta el día de hoy sería:\n")
    append("${formatter.format(balance)} anterior\n")
    values.forEach { append("+ ${formatter.format(it)}\n") }
    append("----------\n")

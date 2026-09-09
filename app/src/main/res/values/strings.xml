@@ -25,7 +25,6 @@
  <string name="open_whatsapp">Abrir WhatsApp</string>
  <string name="send_help">Revisá el mensaje y tocá Enviar en WhatsApp.</string>
  <string name="clear">Limpiar</string>
- <string name="privacy">El mensaje se prepara en tu teléfono.</string>
  <string name="contact_error">No se pudo leer el teléfono. Elegí otro contacto o intentá nuevamente.</string>
  <string name="picker_error">No se pudo abrir el selector de contactos. Podés copiar el mensaje.</string>
  <string name="whatsapp_error">No se pudo abrir WhatsApp. Podés copiar el mensaje y pegarlo manualmente.</string>

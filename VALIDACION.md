@@ -1,3 +1,24 @@
+# Validación de Complicados — 2026-09-09
+
+Prueba posterior en Motorola Edge 50 Fusion, Android 15, conectado por USB:
+`gradlew.bat connectedDebugAndroidTest --console plain` terminó con **BUILD SUCCESSFUL**.
+Pasaron las 4 pruebas de pantalla: copia habitual, rechazo de importe cero, conservación del borrador al recrear
+la Activity y limpieza, y flujo de Complicados (varias filas, campos incompletos, eliminación de monto,
+restauración del borrador y copia exacta de 13.800 + 9.200 = 23.000).
+Se actualizaron las expectativas antiguas de centavos al formato actual de pesos enteros.
+No se enviaron mensajes ni se probó el traspaso real a WhatsApp en esta ejecución.
+
+Ejecutado `gradlew.bat testDebugUnitTest assembleDebug lintDebug --console plain` con JDK 17.0.20.1,
+Android SDK Platform 36 y Build Tools 35.0.0: **BUILD SUCCESSFUL**.
+Las 13 pruebas unitarias pasaron: 0 fallos, 0 errores, 0 omitidas. Lint terminó con 0 errores y 8 advertencias.
+APK generado: `app/build/outputs/apk/debug/app-debug.apk`.
+
+El mensaje detallado usa el saludo según la hora y «hasta el día de hoy sería:», seguido de la suma.
+No se ejecutaron pruebas de pantalla ni la integración real con WhatsApp: ADB no detectó dispositivos conectados.
+Este resultado resuelve el bloqueo de Java registrado abajo.
+
+---
+
 # Opción Complicados — 2026-09-08
 
 Implementados saldo anterior, múltiples montos editables, eliminación de filas y suma automática.

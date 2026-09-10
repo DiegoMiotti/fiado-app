@@ -56,7 +56,7 @@ object MessageRules {
   val formatter = DecimalFormat("#,##0", DecimalFormatSymbols(Locale.forLanguageTag("es-AR")))
   return buildString {
    append("${greeting(LocalTime.now(clock))}, hasta el día de hoy sería:\n")
-   append("${formatter.format(balance)} anterior\n")
+   append("${formatter.format(balance)}\n")
    values.forEach { append("+ ${formatter.format(it)}\n") }
    append("----------\n")
    append(formatter.format(values.fold(balance, BigDecimal::add)))

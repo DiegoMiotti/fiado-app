@@ -7,11 +7,11 @@ import java.net.URLDecoder
 
 class MessageRulesTest {
  @Test fun detailedSumMatchesExample() {
-  assertEquals("Hola buen día, hasta el día de hoy sería:\n13.800 anterior\n+ 9.200\n----------\n23.000",
+  assertEquals("Hola buen día, hasta el día de hoy sería:\n13.800\n+ 9.200\n----------\n23.000",
    MessageRules.detailedMessage("13.800", listOf("9200"), clock))
  }
  @Test fun detailedSumSupportsSeveralAmountsAndLargeTotal() {
-  assertEquals("Hola buen día, hasta el día de hoy sería:\n999.999.999 anterior\n+ 1\n+ 9.200\n----------\n1.000.009.200",
+  assertEquals("Hola buen día, hasta el día de hoy sería:\n999.999.999\n+ 1\n+ 9.200\n----------\n1.000.009.200",
    MessageRules.detailedMessage("999999999", listOf("1", "9.200"), clock))
  }
  @Test fun detailedSumRequiresEveryAmount() {

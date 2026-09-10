@@ -13,7 +13,7 @@ El total se calcula automáticamente. La vista previa, **Copiar mensaje** y **Ab
 
 ```text
 Hola buenas tardes, hasta el día de hoy sería:
-13.800 anterior
+13.800
 + 9.200
 ----------
 23.000

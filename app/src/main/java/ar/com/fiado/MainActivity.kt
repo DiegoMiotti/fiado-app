@@ -106,14 +106,14 @@ class MainActivity : ComponentActivity() {
    Column(Modifier.fillMaxSize().padding(padding).imePadding().verticalScroll(rememberScrollState())
     .padding(horizontal = 20.dp, vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
     Card(
-     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
      modifier = Modifier.fillMaxWidth()
     ) {
      Column(Modifier.padding(horizontal = 24.dp, vertical = 22.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
       Text(stringResource(R.string.today), style = MaterialTheme.typography.labelLarge,
-       color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+       color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
       Text(stringResource(R.string.app_name), style = MaterialTheme.typography.displayMedium,
-       color = MaterialTheme.colorScheme.onPrimaryContainer, fontWeight = FontWeight.Bold)
+       color = MaterialTheme.colorScheme.onSecondaryContainer, fontWeight = FontWeight.Bold)
      }
     }
     Text(name.ifEmpty { stringResource(R.string.no_contact) }, style = MaterialTheme.typography.titleMedium)

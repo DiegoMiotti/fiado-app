@@ -93,7 +93,6 @@ class MainActivity : ComponentActivity() {
     .padding(horizontal = 24.dp, vertical = 20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
     Text(stringResource(R.string.today), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
     Text(stringResource(R.string.app_name), style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
-    Text(stringResource(R.string.subtitle), style = MaterialTheme.typography.bodyLarge)
     HorizontalDivider()
     Text(name.ifEmpty { stringResource(R.string.no_contact) }, style = MaterialTheme.typography.titleMedium)
     OutlinedButton(onClick = {
@@ -145,7 +144,9 @@ class MainActivity : ComponentActivity() {
       label = { Text(stringResource(R.string.amount)) }, prefix = { Text("$") }, singleLine = true,
       keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
      isError = amount.isNotEmpty() && message == null,
-     supportingText = { Text(stringResource(if (amount.isNotEmpty() && message == null) R.string.amount_error else R.string.amount_help)) })
+     supportingText = if (amount.isNotEmpty() && message == null) {
+      { Text(stringResource(R.string.amount_error)) }
+     } else null)
     }
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer), modifier = Modifier.fillMaxWidth()) {
      Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {

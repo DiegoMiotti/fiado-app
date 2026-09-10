@@ -7,7 +7,6 @@
  <string name="remove_amount">Quitar</string>
  <string name="detailed_preview_empty">Completá el saldo anterior y cada monto para ver la suma.</string>
  <string name="app_name">Fiado</string>
- <string name="subtitle">Un mensaje claro, una cuenta al día.</string>
  <string name="today">FIADO DE HOY</string>
  <string name="choose_contact">Elegir contacto</string>
  <string name="change_contact">Cambiar contacto</string>
@@ -17,7 +16,6 @@
  <string name="phone_help">Buenos Aires: usamos +54 9 11 y los 8 dígitos locales. No modifica tu contacto.</string>
  <string name="phone_error">Ingresá 8 dígitos locales o un celular de Buenos Aires (+54 9 11).</string>
  <string name="amount">Importe de hoy</string>
-  <string name="amount_help">Pesos argentinos · Solo enteros, con punto de miles.</string>
   <string name="amount_error">Ingresá un importe mayor a 0 y hasta 999.999.999.</string>
  <string name="preview">TU MENSAJE</string>
  <string name="preview_empty">Ingresá el importe para preparar el mensaje.</string>

@@ -22,6 +22,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -45,11 +46,21 @@ class MainActivity : ComponentActivity() {
    navigationBarStyle = SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT)
   )
   setContent {
-   MaterialTheme(colorScheme = lightColorScheme(
-    primary = Color(0xFF135D49), onPrimary = Color.White,
-    background = Color(0xFFF6F8F3), surface = Color(0xFFF6F8F3),
-    secondaryContainer = Color(0xFFE1EEE5), onSecondaryContainer = Color(0xFF163B2F)
-   )) { FiadoScreen() }
+   MaterialTheme(
+    colorScheme = lightColorScheme(
+     primary = Color(0xFF245C4B), onPrimary = Color.White,
+     primaryContainer = Color(0xFFD8E9DF), onPrimaryContainer = Color(0xFF12382D),
+     secondary = Color(0xFF8A5B22), secondaryContainer = Color(0xFFFFDDB0),
+     onSecondaryContainer = Color(0xFF3F2A0D),
+     background = Color(0xFFF7F3EC), surface = Color(0xFFFFFBF5),
+     surfaceVariant = Color(0xFFE6ECE7), outline = Color(0xFF78837C)
+    ),
+    shapes = Shapes(
+     small = RoundedCornerShape(12.dp),
+     medium = RoundedCornerShape(20.dp),
+     large = RoundedCornerShape(28.dp)
+    )
+   ) { FiadoScreen() }
   }
  }
 
@@ -88,14 +99,25 @@ class MainActivity : ComponentActivity() {
     }
    }
   }
-  Scaffold(snackbarHost = { SnackbarHost(snackbar) }) { padding ->
+  Scaffold(
+   containerColor = MaterialTheme.colorScheme.background,
+   snackbarHost = { SnackbarHost(snackbar) }
+  ) { padding ->
    Column(Modifier.fillMaxSize().padding(padding).imePadding().verticalScroll(rememberScrollState())
-    .padding(horizontal = 24.dp, vertical = 20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-    Text(stringResource(R.string.today), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-    Text(stringResource(R.string.app_name), style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
-    HorizontalDivider()
+    .padding(horizontal = 20.dp, vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Card(
+     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+     modifier = Modifier.fillMaxWidth()
+    ) {
+     Column(Modifier.padding(horizontal = 24.dp, vertical = 22.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+      Text(stringResource(R.string.today), style = MaterialTheme.typography.labelLarge,
+       color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+      Text(stringResource(R.string.app_name), style = MaterialTheme.typography.displayMedium,
+       color = MaterialTheme.colorScheme.onPrimaryContainer, fontWeight = FontWeight.Bold)
+     }
+    }
     Text(name.ifEmpty { stringResource(R.string.no_contact) }, style = MaterialTheme.typography.titleMedium)
-    OutlinedButton(onClick = {
+    FilledTonalButton(onClick = {
      try {
       picker.launch(Intent(Intent.ACTION_PICK).apply { type = ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE })
      } catch (_: android.content.ActivityNotFoundException) { notice(R.string.picker_error) }
@@ -116,10 +138,15 @@ class MainActivity : ComponentActivity() {
       Text(stringResource(R.string.normalized_phone, normalized), style = MaterialTheme.typography.bodyMedium)
      }
     }
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
-     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-     Text(stringResource(R.string.complicated), style = MaterialTheme.typography.titleMedium)
-     Switch(checked = complicated, onCheckedChange = model::complicated)
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+     modifier = Modifier.fillMaxWidth()) {
+     Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+      Text(stringResource(R.string.complicated), style = MaterialTheme.typography.titleMedium,
+       fontWeight = FontWeight.SemiBold)
+      Switch(checked = complicated, onCheckedChange = model::complicated)
+     }
     }
     if (complicated) {
      Text(stringResource(R.string.complicated_help))
@@ -148,7 +175,8 @@ class MainActivity : ComponentActivity() {
       { Text(stringResource(R.string.amount_error)) }
      } else null)
     }
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer), modifier = Modifier.fillMaxWidth()) {
+    ElevatedCard(colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+     elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp), modifier = Modifier.fillMaxWidth()) {
      Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
       Text(stringResource(R.string.preview), style = MaterialTheme.typography.labelMedium)
       SelectionContainer { Text(message ?: stringResource(if (complicated) R.string.detailed_preview_empty else R.string.preview_empty), style = MaterialTheme.typography.titleLarge) }
@@ -167,7 +195,9 @@ class MainActivity : ComponentActivity() {
       if (!openWhatsApp(phone, text)) notice(R.string.whatsapp_error)
      }
     }, enabled = message != null && originalPhone.isNotEmpty() && MessageRules.internationalPhone(phone) != null,
-     modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.open_whatsapp)) }
+     modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+     Text(stringResource(R.string.open_whatsapp), fontWeight = FontWeight.Bold)
+    }
     Text(stringResource(R.string.send_help), style = MaterialTheme.typography.bodySmall)
     TextButton(onClick = model::clear, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.clear)) }
    }

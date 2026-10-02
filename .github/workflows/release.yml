@@ -1,0 +1,96 @@
+name: Publicar Fiado 0.2.1
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - .github/workflows/release.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-v0.2.1
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Verificar y publicar APK de prueba
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v6
+
+      - name: Configurar Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Configurar Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Instalar Android API 36
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Verificar versión y evitar reemplazar una Release existente
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import pathlib, re
+          text = pathlib.Path("app/build.gradle.kts").read_text()
+          assert re.search(r'versionName\s*=\s*"0\.2\.1"', text), "La versión debe ser 0.2.1"
+          PY
+          if gh release view v0.2.1 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "La Release v0.2.1 ya existe. No se reemplazan sus archivos."
+            exit 1
+          fi
+
+      - name: Ejecutar pruebas, lint y compilar
+        run: |
+          chmod +x gradlew
+          ./gradlew testDebugUnitTest lintDebug assembleDebug --stacktrace
+
+      - name: Preparar APK, checksum y notas
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk dist/Fiado-0.2.1-debug.apk
+          (cd dist && sha256sum Fiado-0.2.1-debug.apk > SHA256SUMS.txt)
+          cat > dist/RELEASE_NOTES.md <<'NOTES'
+          App Android para preparar mensajes de cobro y abrir WhatsApp con el texto listo. El envío se confirma dentro de WhatsApp.
+
+          - Mensaje habitual con nombre del contacto e importe en pesos enteros.
+          - Modo Complicados: saldo anterior, nuevos importes y total detallado.
+          - Normalización de celulares del área 11 de Argentina.
+          - Sin cuenta, servidor ni historial permanente.
+
+          **Instalación:** descargar Fiado-0.2.1-debug.apk en un teléfono con Android 15 o superior, abrirlo y autorizar la instalación desde la app utilizada si Android lo solicita.
+
+          **Versión de prueba:** APK debug firmado con una clave de depuración, no destinado a Google Play. Si una instalación anterior tiene otra firma, puede ser necesario desinstalarla; se perderá el borrador.
+
+          Pruebas unitarias, lint y compilación se ejecutan antes de publicar. Las pruebas instrumentadas y la integración real con contactos/WhatsApp no se ejecutan en este workflow. Consultar VALIDACION.md para la evidencia histórica.
+
+          SHA256SUMS.txt permite verificar la integridad del APK.
+          NOTES
+          printf '\nCommit compilado: %s\nEjecución de verificación: https://github.com/%s/actions/runs/%s\n' "$GITHUB_SHA" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" >> dist/RELEASE_NOTES.md
+
+      - name: Crear Release con APK descargable
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create v0.2.1 \
+            dist/Fiado-0.2.1-debug.apk dist/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Fiado 0.2.1 — versión de prueba" \
+            --notes-file dist/RELEASE_NOTES.md \
+            --prerelease

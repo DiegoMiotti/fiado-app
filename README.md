@@ -1,15 +1,43 @@
-# Fiado para Android 15 y 16
+# Fiado para Android
 
-Primera prueba de una app nativa para preparar el mensaje del fiado de hoy. Ingresás un importe, elegís un teléfono desde contactos y copiás el texto o abrís WhatsApp con el mensaje preparado. **El envío se confirma dentro de WhatsApp.**
+App nativa para preparar mensajes de cobro de fiado: permite ingresar un importe o sumar un saldo anterior con nuevos montos, elegir un contacto y abrir WhatsApp con el texto listo.
+
+**El envío se confirma dentro de WhatsApp.** La app no envía mensajes automáticamente ni lleva un historial de deudas.
+
+## Descargar e instalar
+
+- **Android 15 o superior** (min SDK 35; versión objetivo Android 16).
+- [Descargar Fiado 0.2.1 — APK de prueba](https://github.com/DiegoMiotti/fiado-app/releases/download/v0.2.1/Fiado-0.2.1-debug.apk).
+- [Notas de la versión y archivos de descarga](https://github.com/DiegoMiotti/fiado-app/releases/tag/v0.2.1).
+
+El APK es una compilación **debug**, firmada con una clave de depuración para probar la app; no es una distribución de Google Play. Descargalo en el teléfono, abrilo y autorizá la instalación desde la app utilizada para abrirlo si Android lo solicita. Si una instalación anterior tiene otra firma, Android puede exigir desinstalarla antes; se perderá el borrador.
+
+Mientras el repositorio sea privado, la descarga requiere una cuenta con acceso al proyecto.
 
 ## Uso
 
-### Opción Complicados
+### Mensaje habitual
 
-Activá **Complicados**, cargá el **Saldo anterior** y un **Monto a sumar**.
-Podés tocar **Agregar otro monto** para sumar más importes y **Quitar** para sacar una fila.
-Ingresá pesos enteros: los puntos de miles se agregan automáticamente. Completá todos los campos para habilitar la copia.
-El total se calcula automáticamente. La vista previa, **Copiar mensaje** y **Abrir WhatsApp** usan este formato, sin productos:
+1. Tocá **Elegir contacto** y seleccioná un número.
+2. Revisá el destino: la normalización está orientada a **celulares del área 11 de Argentina**. Completa `+54 9 11` para los ocho dígitos locales y reconoce formatos como `11…`, `011…` y `011 15…`. No modifica la agenda.
+3. Ingresá **pesos enteros**, por ejemplo `1500`. La pantalla agrega los puntos de miles y muestra `1.500`. No admite centavos; ingresá solamente dígitos, ya que la pantalla elimina los demás caracteres.
+4. Revisá la vista previa. **Copiar mensaje** funciona sin contacto y sin Internet.
+5. Tocá **Abrir WhatsApp**, revisá el destinatario y confirmá el envío allí.
+6. **Limpiar** inicia otra operación.
+
+Ejemplo con un contacto ficticio:
+
+```text
+Hola buen día Juan, lo de hoy es: $1.500
+```
+
+El mensaje habitual incluye el nombre completo del contacto seleccionado; si no hay contacto, omite el nombre. El saludo usa la hora del teléfono: buen día de 06:00 a 11:59, buenas tardes de 12:00 a 19:59 y buenas noches el resto del día.
+
+### Suma detallada: Complicados
+
+Activá **Complicados** y completá **Saldo anterior** y **Monto a sumar**. **Agregar otro monto** añade filas y **Quitar** elimina una fila. Todos los campos deben contener importes positivos en pesos enteros para habilitar el mensaje.
+
+El total se calcula automáticamente. La vista previa, **Copiar mensaje** y **Abrir WhatsApp** usan este formato, sin nombres de productos:
 
 ```text
 Hola buenas tardes, hasta el día de hoy sería:
@@ -19,73 +47,78 @@ Hola buenas tardes, hasta el día de hoy sería:
 23.000
 ```
 
-El saludo cambia según la hora del teléfono (buen día, buenas tardes o buenas noches). El borrador detallado se conserva al recrear la pantalla;
-**Limpiar** borra los importes y vuelve al modo habitual.
+Cada importe admite hasta nueve dígitos, de $1 a $999.999.999. **Limpiar** borra los importes y vuelve al modo habitual.
 
-### Mensaje habitual
+## Alcance y privacidad
 
-1. Tocá **Elegir contacto** y elegí un número.
-2. La app completa **+54 9 11** para los 8 dígitos locales y normaliza formatos como 11…, 011… y 011 15…. Revisá el destino mostrado. Esto no modifica la agenda y aplica a celulares del área 11.
-3. Ingresá el importe sin puntos de miles: `1500`, `1500,50` o `1500.50`.
-4. Revisá el mensaje. **Copiar mensaje** también funciona sin contacto y sin Internet.
-5. Tocá **Abrir WhatsApp**, revisá el destinatario y pulsá Enviar allí.
-6. **Limpiar** inicia otra operación.
+- Sin cuenta, servidor ni registro permanente de operaciones.
+- El borrador se conserva mediante el estado de Android al recrear la pantalla; no reemplaza un historial ni garantiza persistencia permanente.
+- Selecciona un teléfono mediante el proveedor de contactos, con acceso temporal a la URI elegida; no pide permiso general para leer la agenda.
+- No solicita permisos de Internet, notificaciones o accesibilidad.
+- Escribe en el portapapeles solamente al pulsar **Copiar mensaje**.
+- No registra teléfonos, importes o mensajes en logs.
+- Valida el formato del teléfono, pero no comprueba si está registrado en WhatsApp.
+- Intenta abrir WhatsApp o WhatsApp Business; si ambos están disponibles, ofrece un selector. Si ninguno resuelve el enlace, lo abre mediante el sistema, que puede usar un navegador. WhatsApp o el navegador requieren su propia conexión para continuar.
 
-El saludo usa la hora del teléfono: días de 06:00 a 11:59, tardes de 12:00 a 19:59 y noches el resto. El importe se muestra en pesos argentinos con dos decimales. No hay historial, servidor ni cuenta. El borrador se conserva al rotar o cambiar de app mediante el estado de Android; no constituye un registro permanente.
+## Tecnologías y organización
+
+Kotlin 2.1.20, Jetpack Compose (BOM 2025.04.01), Material 3, ViewModel con SavedStateHandle y libphonenumber 8.13.55. Gradle 8.13 y Android Gradle Plugin 8.13.0.
+
+| Archivo | Responsabilidad |
+|---|---|
+| `MainActivity.kt` | Pantalla Compose, selección de contactos, portapapeles e integración con WhatsApp |
+| `FiadoViewModel.kt` | Estado de la pantalla y conservación del borrador |
+| `MessageRules.kt` | Importes con BigDecimal, saludo con reloj inyectable, mensajes y normalización de teléfonos |
+| `MessageRulesTest.kt` | Pruebas unitarias de las reglas |
+| `FiadoDeviceTest.kt` | Pruebas instrumentadas de la interfaz |
+
+Los archivos Kotlin están bajo `app/src/main/java/ar/com/fiado/`; las pruebas, bajo `app/src/test/` y `app/src/androidTest/`.
 
 ## Abrir y compilar
 
-Requisitos: JDK 17, Android SDK Platform 36, Build Tools 35.0.0 y Android Studio compatible con AGP 8.13.0. La primera sincronización requiere Internet para descargar dependencias. Las versiones están fijadas en los archivos Gradle.
+Requisitos: **JDK 17**, Android SDK Platform 36, Build Tools 36.0.0 (como en CI) y Android Studio compatible con AGP 8.13.0. La primera sincronización requiere Internet para descargar las dependencias.
 
-Abrir esta carpeta como proyecto en Android Studio y sincronizar Gradle. Elegir JDK 17 para Gradle. Configurar `local.properties` con la ruta del SDK si Android Studio no lo crea; este archivo no se versiona.
+Abrí el proyecto en Android Studio, seleccioná JDK 17 para Gradle y sincronizá. Configurá `local.properties` con la ruta del SDK si Android Studio no lo crea; este archivo no se versiona.
 
-Ejemplo del equipo de desarrollo, en PowerShell:
+Linux/macOS:
 
-```powershell
-$env:JAVA_HOME = 'C:\Program Files\Java\jdk-17'
-.\gradlew.bat testDebugUnitTest assembleDebug lintDebug --console plain
+```bash
+chmod +x gradlew
+./gradlew testDebugUnitTest lintDebug assembleDebug --console plain
 ```
 
-APK de depuración: [app-debug.apk](app/build/outputs/apk/debug/app-debug.apk).
-Es un artefacto local generado, excluido de Git. No es un APK de publicación.
-
-## Instalar en el teléfono
-
-El dispositivo debe tener Android 15 o superior. El teléfono conectado reportó Android 15; se mantiene Android 16 como versión objetivo. Transferir el APK al teléfono, abrirlo y autorizar la instalación desde la app usada para abrirlo si Android lo solicita.
-
-Alternativa con depuración USB habilitada y el equipo autorizado:
+Windows, desde PowerShell con JDK 17 configurado:
 
 ```powershell
-& "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe" devices
-& "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe" install -r .\app\build\outputs\apk\debug\app-debug.apk
+.\gradlew.bat testDebugUnitTest lintDebug assembleDebug --console plain
 ```
 
-## Decisiones técnicas
+El APK local se genera en `app/build/outputs/apk/debug/app-debug.apk`; está excluido de Git. Para instalarlo con depuración USB habilitada y el equipo autorizado:
 
-- Kotlin 2.1.20, Gradle 8.13, AGP 8.13.0, Compose BOM 2025.04.01.
-- `applicationId`: `ar.com.fiado`; min SDK 35; target/compile SDK 36.
-- Selección de teléfono con el proveedor de contactos y permiso temporal sobre la URI seleccionada; sin permiso general de agenda.
-- libphonenumber 8.13.55 valida el número normalizado con +54 9 11. Esto no comprueba si está registrado en WhatsApp.
-- Se prueban manejadores públicos de enlaces de WhatsApp y WhatsApp Business. Con ambos, se muestra selector. Si ninguno resuelve, se abre el enlace HTTPS con el sistema (puede abrir el navegador).
-- Portapapeles solo al pulsar Copiar; sin lectura del portapapeles.
-- Sin permisos de Internet, contactos completos, notificaciones o accesibilidad.
-- Plantilla determinista, dinero con BigDecimal y reloj inyectable. ViewModel con SavedStateHandle.
-- No se registran teléfonos, importes o mensajes en logs. No hay confirmación de entrega ni automatización de Enviar.
+```bash
+adb devices
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
 
-## Validación
+## Pruebas y validación
 
-Consultar [VALIDACION.md](VALIDACION.md) para los resultados reales y los pasos pendientes en el teléfono. Los tests unitarios cubren límites horarios, zona horaria, formato y rechazo de importes, teléfonos internacionales y codificación del enlace. Lint y compilación no sustituyen la prueba real de contactos/WhatsApp.
+Las pruebas unitarias cubren horarios y zona horaria, formato y validación de importes, suma detallada, normalización de teléfonos y codificación del enlace de WhatsApp.
 
-## Referencias de desarrollo
+El [workflow de compilación](.github/workflows/build-apk.yml) ejecuta pruebas y genera un APK temporal en Actions. El [workflow de la Release 0.2.1](.github/workflows/release.yml) ejecuta pruebas unitarias, lint y compilación antes de publicar el APK y su checksum SHA-256 en una Release.
 
-- `151b823`: especificación inicial.
-- `281f398`: proyecto y reglas de generación con pruebas unitarias.
-- `41e86c1`: pantalla Compose, borrador, contactos, WhatsApp y Gradle Wrapper.
-- Consultar `git log --oneline` para los cambios posteriores de validación y documentación.
+Las pruebas instrumentadas requieren un emulador o dispositivo conectado:
 
-Alcance completo: [especs.md](especs.md).
+```bash
+./gradlew connectedDebugAndroidTest
+```
 
-Fuentes técnicas: [Android 16 SDK](https://developer.android.com/about/versions/16/setup-sdk), [AGP 8.13](https://developer.android.com/build/releases/agp-8-13-0-release-notes), [intents y contactos](https://developer.android.com/guide/components/intents-common), [WhatsApp click-to-chat](https://faq.whatsapp.com/5913398998672934).
+Consultar [VALIDACION.md](VALIDACION.md) para la evidencia de pruebas en teléfono y los resultados históricos. La compilación, lint y los tests no sustituyen la comprobación real del selector de contactos y del traspaso a WhatsApp.
 
-Versión 0.2.1: el mensaje incluye el nombre completo del contacto, por ejemplo «Hola buen día Juan, lo de hoy es: $1.500,00». Sin contacto se omite el nombre. APK listo para instalar: [Fiado-0.2.1.apk](Fiado-0.2.1.apk).
+Especificación e historial de decisiones: [especs.md](especs.md). Ante diferencias con documentos históricos, este README describe el comportamiento actual.
 
+## Referencias técnicas
+
+- [Android 16 SDK](https://developer.android.com/about/versions/16/setup-sdk)
+- [Android Gradle Plugin 8.13](https://developer.android.com/build/releases/agp-8-13-0-release-notes)
+- [Intents y contactos](https://developer.android.com/guide/components/intents-common)
+- [WhatsApp click-to-chat](https://faq.whatsapp.com/5913398998672934)

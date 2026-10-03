@@ -1,10 +1,1 @@
-{
-  "java.jdt.ls.java.home": "C:\\Users\\dmiotti\\AppData\\Local\\Java\\jdk-17.0.20.1+1",
-  "java.import.gradle.java.home": "C:\\Users\\dmiotti\\AppData\\Local\\Java\\jdk-17.0.20.1+1",
-  "terminal.integrated.env.windows": {
-    "JAVA_HOME": "C:\\Users\\dmiotti\\AppData\\Local\\Java\\jdk-17.0.20.1+1",
-    "ANDROID_HOME": "C:\\Users\\dmiotti\\AppData\\Local\\Android\\Sdk",
-    "ANDROID_SDK_ROOT": "C:\\Users\\dmiotti\\AppData\\Local\\Android\\Sdk",
-    "PATH": "${env:PATH};C:\\Users\\dmiotti\\AppData\\Local\\Java\\jdk-17.0.20.1+1\\bin;C:\\Users\\dmiotti\\AppData\\Local\\Android\\Sdk\\platform-tools;C:\\Users\\dmiotti\\AppData\\Local\\Android\\Sdk\\cmdline-tools\\latest\\bin"
-  }
-}
+{}

@@ -8,7 +8,7 @@
 
 Abrí la raíz del proyecto en Android Studio, seleccioná JDK 17 para Gradle y sincronizá. Configurá la ubicación del SDK desde el IDE; `local.properties` es local y no se versiona. La primera sincronización necesita Internet para descargar Gradle y las dependencias.
 
-El proyecto usa Kotlin 2.1.20, Jetpack Compose y Gradle Wrapper 8.13. No hace falta instalar Gradle por separado.
+El proyecto usa Kotlin 2.1.20, Jetpack Compose y Gradle Wrapper 8.13. No hace falta instalar Gradle por separado. Si usás VS Code, configurá las rutas de Java y del SDK en tus ajustes de usuario o en las variables de entorno de tu equipo; el archivo compartido `.vscode/settings.json` no fija rutas locales.
 
 ## Compilar y comprobar
 

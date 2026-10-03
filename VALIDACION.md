@@ -15,6 +15,6 @@ Hay evidencia histórica de cuatro pruebas instrumentadas aprobadas en Android 1
 
 - Repetir selección de contacto y traspaso a WhatsApp de los mensajes habitual y detallado con un destinatario autorizado, sin pulsar Enviar.
 - Repetir pruebas instrumentadas en Android 16; probar fuente grande, proveedor de contactos alternativo, WhatsApp Business y ausencia de WhatsApp.
-- La revisión previa detectó rutas personales en `.vscode/settings.json` y su historial. La búsqueda de patrones de credenciales no tuvo coincidencias, pero no certifica ausencia de secretos.
+- Se retiraron las rutas personales de `.vscode/settings.json`. Los commits anteriores conservan esa configuración; no se reescribió el historial. La búsqueda previa de patrones de credenciales no tuvo coincidencias, pero no certifica ausencia de secretos.
 
 Comandos, requisitos e informes: [guía de desarrollo](docs/DESARROLLO.md).

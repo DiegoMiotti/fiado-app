@@ -20,9 +20,9 @@ Elegí simplificar ese método que ya conoce: cargar los montos, calcular el tot
 
 ## Así se ve
 
-| Cobro de hoy | Suma detallada | Mensaje listo |
-|:---:|:---:|:---:|
-| <img src="docs/screenshots/mensaje-habitual.png" alt="Mensaje habitual con importe ficticio de 1.500 pesos" width="250"> | <img src="docs/screenshots/suma-detallada.png" alt="Saldo de 13.800 más 9.200 pesos" width="250"> | <img src="docs/screenshots/vista-previa.png" alt="Vista previa del total de 23.000 pesos" width="250"> |
+| Cobro de hoy | Mensaje listo |
+|:---:|:---:|
+| <img src="docs/screenshots/mensaje-habitual.png" alt="Mensaje habitual con importe ficticio de 1.500 pesos" width="250"> | <img src="docs/screenshots/vista-previa.png" alt="Vista previa del total de 23.000 pesos" width="250"> |
 
 Capturas reales con importes ficticios, sin nombres ni teléfonos.
 
@@ -36,6 +36,6 @@ La normalización de teléfonos está orientada a **celulares del área 11 de Ar
 
 ## Instalación
 
-Descargá el APK, abrilo en tu teléfono y permití la instalación desde la app utilizada si Android lo solicita. Es una **versión de prueba**, fuera de Google Play. Mientras el repositorio sea privado, necesitás acceso para descargarla.
+Descargá el APK, abrilo en tu teléfono y permití la instalación desde la app utilizada si Android lo solicita. Es una **versión de prueba**, fuera de Google Play.
 
-Hecha con **Kotlin y Jetpack Compose**. [Validación y pendientes](VALIDACION.md) · [Notas de la versión](https://github.com/DiegoMiotti/fiado-app/releases/tag/v0.2.1) · [Reportar un problema](https://github.com/DiegoMiotti/fiado-app/issues).
+Hecha con **Kotlin y Jetpack Compose**. [Guía de desarrollo](docs/DESARROLLO.md) · [Validación y pendientes](VALIDACION.md) · [Notas de la versión](https://github.com/DiegoMiotti/fiado-app/releases/tag/v0.2.1) · [Reportar un problema](https://github.com/DiegoMiotti/fiado-app/issues).

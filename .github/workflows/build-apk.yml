@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build:
-    name: Tests y APK debug
+    name: Tests, lint y APK debug
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -37,8 +37,8 @@ jobs:
       - name: Habilitar Gradle Wrapper
         run: chmod +x gradlew
 
-      - name: Ejecutar tests y compilar APK
-        run: ./gradlew test assembleDebug --stacktrace
+      - name: Ejecutar tests, lint y compilar APK
+        run: ./gradlew testDebugUnitTest lintDebug assembleDebug --stacktrace
 
       - name: Publicar APK
         uses: actions/upload-artifact@v4

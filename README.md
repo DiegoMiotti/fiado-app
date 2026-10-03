@@ -1,43 +1,71 @@
-# Fiado para Android
+<div align="center">
 
-App nativa para preparar mensajes de cobro de fiado: permite ingresar un importe o sumar un saldo anterior con nuevos montos, elegir un contacto y abrir WhatsApp con el texto listo.
+# Fiado
 
-**El envío se confirma dentro de WhatsApp.** La app no envía mensajes automáticamente ni lleva un historial de deudas.
+### Del importe al mensaje, en unos pocos toques.
 
-## Descargar e instalar
+Prepará el cobro de hoy, sumá lo que quedó pendiente y llevá un mensaje claro a WhatsApp.
 
-- **Android 15 o superior** (min SDK 35; versión objetivo Android 16).
-- [Descargar Fiado 0.2.1 — APK de prueba](https://github.com/DiegoMiotti/fiado-app/releases/download/v0.2.1/Fiado-0.2.1-debug.apk).
-- [Notas de la versión y archivos de descarga](https://github.com/DiegoMiotti/fiado-app/releases/tag/v0.2.1).
+**Para comercios, emprendimientos y personas que cobran fiado por mensaje.**
 
-El APK es una compilación **debug**, firmada con una clave de depuración para probar la app; no es una distribución de Google Play. Descargalo en el teléfono, abrilo y autorizá la instalación desde la app utilizada para abrirlo si Android lo solicita. Si una instalación anterior tiene otra firma, Android puede exigir desinstalarla antes; se perderá el borrador.
+[**📲 Descargar Fiado para Android**](https://github.com/DiegoMiotti/fiado-app/releases/download/v0.2.1/Fiado-0.2.1-debug.apk)
 
-Mientras el repositorio sea privado, la descarga requiere una cuenta con acceso al proyecto.
+[Ver la versión y sus novedades](https://github.com/DiegoMiotti/fiado-app/releases/tag/v0.2.1)
 
-## Uso
+**Android 15 o superior · Pesos argentinos enteros · Sin crear una cuenta**
 
-### Mensaje habitual
+</div>
 
-1. Tocá **Elegir contacto** y seleccioná un número.
-2. Revisá el destino: la normalización está orientada a **celulares del área 11 de Argentina**. Completa `+54 9 11` para los ocho dígitos locales y reconoce formatos como `11…`, `011…` y `011 15…`. No modifica la agenda.
-3. Ingresá **pesos enteros**, por ejemplo `1500`. La pantalla agrega los puntos de miles y muestra `1.500`. No admite centavos; ingresá solamente dígitos, ya que la pantalla elimina los demás caracteres.
-4. Revisá la vista previa. **Copiar mensaje** funciona sin contacto y sin Internet.
-5. Tocá **Abrir WhatsApp**, revisá el destinatario y confirmá el envío allí.
-6. **Limpiar** inicia otra operación.
+---
 
-Ejemplo con un contacto ficticio:
+## Menos cuentas a mano. Más claridad al cobrar.
+
+Un importe de hoy. Un saldo que quedó de antes. Otro monto para sumar. Y después, escribir todo de nuevo en un mensaje.
+
+**Fiado te ayuda a preparar esa cuenta y comunicarla.** Ingresás los importes, revisás el resultado y elegís entre copiar el mensaje o abrir WhatsApp con el texto listo. Si seleccionás un contacto, el mensaje habitual también incorpora su nombre.
+
+Vos revisás el destinatario y confirmás el envío en WhatsApp. La app no envía mensajes automáticamente ni lleva un historial de deudas.
+
+## Así se ve Fiado
+
+| El cobro de hoy | Saldo anterior + nuevos importes | La cuenta lista para compartir |
+|:---:|:---:|:---:|
+| <img src="docs/screenshots/mensaje-habitual.png" alt="Pantalla de Fiado con un importe ficticio de 1.500 pesos y el mensaje preparado" width="250"> | <img src="docs/screenshots/suma-detallada.png" alt="Modo Complicados con saldo anterior de 13.800 y un nuevo importe de 9.200 pesos" width="250"> | <img src="docs/screenshots/vista-previa.png" alt="Vista previa del total de 23.000 pesos y acciones para copiar o abrir WhatsApp" width="250"> |
+| Ingresá un importe y revisá el mensaje. | Sumá lo pendiente y los nuevos montos. | Comprobá el detalle antes de compartirlo. |
+
+Capturas reales tomadas en un Motorola Edge 50 Fusion con Android 16. Todos los importes son ficticios; no muestran nombres ni teléfonos. El botón de WhatsApp aparece deshabilitado porque no se seleccionó un contacto.
+
+## Lo que podés hacer
+
+| Función | Cómo te ayuda |
+|---|---|
+| **Mensaje habitual** | Prepará el importe de hoy con el nombre del contacto seleccionado. |
+| **Suma detallada** | Combiná un saldo anterior con uno o varios importes nuevos y obtené el total automáticamente. |
+| **Vista previa** | Revisá exactamente qué texto vas a copiar o llevar a WhatsApp. |
+| **Saludo según la hora** | El mensaje usa buen día, buenas tardes o buenas noches según la hora del teléfono. |
+| **Copiar mensaje** | Usá el texto donde prefieras, incluso sin elegir un contacto. |
+| **Abrir WhatsApp** | Continuá en WhatsApp con el destinatario y el mensaje preparados. |
+| **Limpiar** | Empezá otra operación cuando termines. |
+
+## Dos formas de preparar tu cobro
+
+### Para el importe de hoy
+
+Elegí un contacto, ingresá el importe y revisá la vista previa. Fiado agrega los puntos de miles: escribís `1500` y ves `1.500`.
+
+Con un contacto ficticio llamado Juan, el mensaje de la mañana queda así:
 
 ```text
 Hola buen día Juan, lo de hoy es: $1.500
 ```
 
-El mensaje habitual incluye el nombre completo del contacto seleccionado; si no hay contacto, omite el nombre. El saludo usa la hora del teléfono: buen día de 06:00 a 11:59, buenas tardes de 12:00 a 19:59 y buenas noches el resto del día.
+Sin contacto, el mensaje omite el nombre y se puede copiar igualmente.
 
-### Suma detallada: Complicados
+### Para sumar lo pendiente
 
-Activá **Complicados** y completá **Saldo anterior** y **Monto a sumar**. **Agregar otro monto** añade filas y **Quitar** elimina una fila. Todos los campos deben contener importes positivos en pesos enteros para habilitar el mensaje.
+Activá **Complicados**, cargá el **Saldo anterior** y un **Monto a sumar**. Si hay más importes, tocá **Agregar otro monto**; podés quitar las filas que ya no necesites.
 
-El total se calcula automáticamente. La vista previa, **Copiar mensaje** y **Abrir WhatsApp** usan este formato, sin nombres de productos:
+Por ejemplo, un saldo de $13.800 más $9.200 produce este mensaje por la tarde:
 
 ```text
 Hola buenas tardes, hasta el día de hoy sería:
@@ -47,78 +75,62 @@ Hola buenas tardes, hasta el día de hoy sería:
 23.000
 ```
 
-Cada importe admite hasta nueve dígitos, de $1 a $999.999.999. **Limpiar** borra los importes y vuelve al modo habitual.
+El detalle permite ver de dónde sale el total. Completá todos los campos con importes positivos para habilitar el mensaje.
 
-## Alcance y privacidad
+## Empezá a usarla
 
-- Sin cuenta, servidor ni registro permanente de operaciones.
-- El borrador se conserva mediante el estado de Android al recrear la pantalla; no reemplaza un historial ni garantiza persistencia permanente.
-- Selecciona un teléfono mediante el proveedor de contactos, con acceso temporal a la URI elegida; no pide permiso general para leer la agenda.
-- No solicita permisos de Internet, notificaciones o accesibilidad.
-- Escribe en el portapapeles solamente al pulsar **Copiar mensaje**.
-- No registra teléfonos, importes o mensajes en logs.
-- Valida el formato del teléfono, pero no comprueba si está registrado en WhatsApp.
-- Intenta abrir WhatsApp o WhatsApp Business; si ambos están disponibles, ofrece un selector. Si ninguno resuelve el enlace, lo abre mediante el sistema, que puede usar un navegador. WhatsApp o el navegador requieren su propia conexión para continuar.
+1. **Descargá el APK** con el botón de abajo desde tu teléfono.
+2. **Abrí el archivo** y, si Android lo solicita, permití la instalación desde la app que usaste para descargarlo.
+3. **Abrí Fiado**, elegí un contacto e ingresá el importe. También podés preparar y copiar un mensaje sin contacto.
+4. **Revisá y compartí.** Tocá **Abrir WhatsApp**, comprobá el chat y confirmá el envío allí.
 
-## Tecnologías y organización
+<div align="center">
 
-Kotlin 2.1.20, Jetpack Compose (BOM 2025.04.01), Material 3, ViewModel con SavedStateHandle y libphonenumber 8.13.55. Gradle 8.13 y Android Gradle Plugin 8.13.0.
+[**📲 Descargar Fiado 0.2.1 — versión de prueba**](https://github.com/DiegoMiotti/fiado-app/releases/download/v0.2.1/Fiado-0.2.1-debug.apk)
 
-| Archivo | Responsabilidad |
-|---|---|
-| `MainActivity.kt` | Pantalla Compose, selección de contactos, portapapeles e integración con WhatsApp |
-| `FiadoViewModel.kt` | Estado de la pantalla y conservación del borrador |
-| `MessageRules.kt` | Importes con BigDecimal, saludo con reloj inyectable, mensajes y normalización de teléfonos |
-| `MessageRulesTest.kt` | Pruebas unitarias de las reglas |
-| `FiadoDeviceTest.kt` | Pruebas instrumentadas de la interfaz |
+[Notas de la versión y archivos de descarga](https://github.com/DiegoMiotti/fiado-app/releases/tag/v0.2.1)
 
-Los archivos Kotlin están bajo `app/src/main/java/ar/com/fiado/`; las pruebas, bajo `app/src/test/` y `app/src/androidTest/`.
+</div>
 
-## Abrir y compilar
+El botón apunta directamente al APK de la Release: no necesitás compilar la app ni buscar archivos en el código. Mientras el repositorio sea privado, GitHub requiere una cuenta con acceso para descargarlo.
 
-Requisitos: **JDK 17**, Android SDK Platform 36, Build Tools 36.0.0 (como en CI) y Android Studio compatible con AGP 8.13.0. La primera sincronización requiere Internet para descargar las dependencias.
+**Esta es una versión de prueba**, distribuida como APK debug con firma de depuración, fuera de Google Play. Si tenés una instalación con otra firma, Android puede impedir actualizarla. Desinstalar la anterior borra su borrador; tenelo en cuenta antes de hacerlo.
 
-Abrí el proyecto en Android Studio, seleccioná JDK 17 para Gradle y sincronizá. Configurá `local.properties` con la ruta del SDK si Android Studio no lo crea; este archivo no se versiona.
+## Lo que necesitás saber
 
-Linux/macOS:
+- **Android 15 o superior.** Las capturas de esta página se tomaron en Android 16.
+- **Celulares del área 11 de Argentina.** La normalización está orientada a esos números: completa `+54 9 11` para los ocho dígitos locales y reconoce formatos como `11…`, `011…` y `011 15…`. Revisá siempre el destino; la app no modifica tu agenda.
+- **Importes en pesos enteros.** No admite centavos. Ingresá solamente dígitos; los puntos de miles aparecen automáticamente. Cada campo admite de $1 a $999.999.999.
+- **El envío lo confirmás vos.** Fiado prepara el texto; no verifica si el número tiene WhatsApp ni confirma envío, recepción o pago.
+- **Preparar y copiar funciona sin Internet.** WhatsApp o el navegador necesitan su propia conexión para continuar. La app no solicita permiso de Internet.
+- **Sin historial de deudas.** El borrador puede conservarse al recrear la pantalla mediante el estado de Android, pero no es un registro permanente de tus cuentas.
 
-```bash
-chmod +x gradlew
-./gradlew testDebugUnitTest lintDebug assembleDebug --console plain
-```
+Si WhatsApp y WhatsApp Business están disponibles, la app intenta ofrecer un selector. Si ninguno resuelve el enlace, lo abre mediante el sistema, que puede usar un navegador.
 
-Windows, desde PowerShell con JDK 17 configurado:
+## Tu información, con un alcance claro
 
-```powershell
-.\gradlew.bat testDebugUnitTest lintDebug assembleDebug --console plain
-```
+Fiado no requiere una cuenta ni un servidor propio. Elegís un teléfono desde el selector de contactos del sistema; la app accede temporalmente al contacto elegido y no pide permiso general para leer toda tu agenda.
 
-El APK local se genera en `app/build/outputs/apk/debug/app-debug.apk`; está excluido de Git. Para instalarlo con depuración USB habilitada y el equipo autorizado:
+El portapapeles se usa cuando tocás **Copiar mensaje**. La app no registra nombres, teléfonos, importes ni mensajes en logs, y no solicita permisos de notificaciones ni accesibilidad.
 
-```bash
-adb devices
-adb install -r app/build/outputs/apk/debug/app-debug.apk
-```
+## Una app pequeña, con trabajo detrás
 
-## Pruebas y validación
+Desarrollada en **Kotlin y Jetpack Compose**, con una interfaz nativa y reglas de importes, mensajes y teléfonos separadas del estado de la pantalla.
 
-Las pruebas unitarias cubren horarios y zona horaria, formato y validación de importes, suma detallada, normalización de teléfonos y codificación del enlace de WhatsApp.
+La revisión local del 3 de octubre de 2026 dejó **13 pruebas unitarias aprobadas**, compilación exitosa y lint con **0 errores y 10 advertencias**. También se revisaron las tres pantallas mostradas arriba en un teléfono real. La integración con WhatsApp tiene evidencia de una versión anterior y queda pendiente repetirla con el mensaje actual.
 
-El [workflow de compilación](.github/workflows/build-apk.yml) ejecuta pruebas y genera un APK temporal en Actions. El [workflow de la Release 0.2.1](.github/workflows/release.yml) ejecuta pruebas unitarias, lint y compilación antes de publicar el APK y su checksum SHA-256 en una Release.
+Podés consultar [la validación y sus pendientes](VALIDACION.md) y [las decisiones del proyecto](especs.md).
 
-Las pruebas instrumentadas requieren un emulador o dispositivo conectado:
+## ¿Encontraste algo para mejorar?
 
-```bash
-./gradlew connectedDebugAndroidTest
-```
+[Contalo en Issues](https://github.com/DiegoMiotti/fiado-app/issues): indicá qué intentabas hacer, qué ocurrió y qué versión de Android usás. Si adjuntás una captura, ocultá nombres, teléfonos y cualquier información personal.
 
-Consultar [VALIDACION.md](VALIDACION.md) para la evidencia de pruebas en teléfono y los resultados históricos. La compilación, lint y los tests no sustituyen la comprobación real del selector de contactos y del traspaso a WhatsApp.
+---
 
-Especificación e historial de decisiones: [especs.md](especs.md). Ante diferencias con documentos históricos, este README describe el comportamiento actual.
+<div align="center">
 
-## Referencias técnicas
+**Prepará la cuenta. Revisá el mensaje. Compartilo con Fiado.**
 
-- [Android 16 SDK](https://developer.android.com/about/versions/16/setup-sdk)
-- [Android Gradle Plugin 8.13](https://developer.android.com/build/releases/agp-8-13-0-release-notes)
-- [Intents y contactos](https://developer.android.com/guide/components/intents-common)
-- [WhatsApp click-to-chat](https://faq.whatsapp.com/5913398998672934)
+[**Descargar para Android**](https://github.com/DiegoMiotti/fiado-app/releases/download/v0.2.1/Fiado-0.2.1-debug.apk)
+
+</div>

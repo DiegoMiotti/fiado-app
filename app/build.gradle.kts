@@ -15,6 +15,20 @@ android {
   versionName = "0.2.1"
  }
  buildFeatures { compose = true }
+ // UTP removes target APKs even after an install failure. Connected tests must never target the personal app.
+ val isolatedDeviceTests = providers.gradleProperty("isolatedDeviceTests").orNull == "true" ||
+  gradle.startParameter.taskNames.any { it.substringAfterLast(':').startsWith("connected") }
+ defaultConfig {
+  manifestPlaceholders["launcherLabel"] = if (isolatedDeviceTests) "Fiado (pruebas OCR)" else "@string/app_name"
+ }
+ buildTypes {
+  getByName("debug") {
+   if (isolatedDeviceTests) {
+    applicationIdSuffix = ".ocrtest"
+    versionNameSuffix = "-ocr-test"
+   }
+  }
+ }
  compileOptions {
   sourceCompatibility = JavaVersion.VERSION_17
   targetCompatibility = JavaVersion.VERSION_17
@@ -29,6 +43,8 @@ dependencies {
  implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.0")
  implementation("com.googlecode.libphonenumber:libphonenumber:8.13.55")
  testImplementation("junit:junit:4.13.2")
+ testImplementation("org.json:json:20240303")
+ testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
 }
 
 dependencies {

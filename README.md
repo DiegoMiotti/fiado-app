@@ -28,6 +28,8 @@ Capturas reales con importes ficticios, sin nombres ni teléfonos.
 
 ## Cómo funciona
 
+En la rama de integración OCR + IA también podés elegir una foto de las anotaciones, consultar tu backend y revisar movimientos y contacto antes de reemplazar el cobro. [Configuración y prueba con una foto ficticia](docs/LECTURA_IA.md).
+
 1. **Cargá el importe de hoy** o activá **Complicados** para sumar un saldo anterior y nuevos montos.
 2. **Revisá la vista previa** y elegí un contacto si vas a usar WhatsApp.
 3. **Copiá el mensaje o abrí WhatsApp.** Vos comprobás el destinatario y confirmás el envío allí.

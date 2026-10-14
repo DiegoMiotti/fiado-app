@@ -32,6 +32,9 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import ar.com.fiado.readings.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -66,6 +69,14 @@ class MainActivity : ComponentActivity() {
 
  @Composable
  private fun FiadoScreen(model: FiadoViewModel = viewModel()) {
+  val readingFactory = remember {
+   object : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : ViewModel> create(modelClass: Class<T>): T =
+     ReadingViewModel(KeystoreConnectionStore(applicationContext), HttpReadingGateway(), AndroidPhotoPreparer(applicationContext)) as T
+   }
+  }
+  val readings: ReadingViewModel = viewModel(factory = readingFactory)
   val amount by model.amount.collectAsStateWithLifecycle()
   val name by model.name.collectAsStateWithLifecycle()
   val originalPhone by model.originalPhone.collectAsStateWithLifecycle()
@@ -119,7 +130,7 @@ class MainActivity : ComponentActivity() {
     Text(name.ifEmpty { stringResource(R.string.no_contact) }, style = MaterialTheme.typography.titleMedium)
     FilledTonalButton(onClick = {
      try {
-      picker.launch(Intent(Intent.ACTION_PICK).apply { type = ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE })
+      picker.launch(contactPickerIntent())
      } catch (_: android.content.ActivityNotFoundException) { notice(R.string.picker_error) }
        catch (_: SecurityException) { notice(R.string.picker_error) }
     }, modifier = Modifier.fillMaxWidth()) {
@@ -175,6 +186,7 @@ class MainActivity : ComponentActivity() {
       { Text(stringResource(R.string.amount_error)) }
      } else null)
     }
+    ReadingPanel(readings, model::applyReading, ::readPhone)
     ElevatedCard(colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
      elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp), modifier = Modifier.fillMaxWidth()) {
      Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {

@@ -1,5 +1,29 @@
 # Validación y pendientes
 
+## Integración OCR + IA — 14 de octubre de 2026
+
+Validación local en la rama `codex/mejora-deteccion-ocr-ia`:
+
+| Comprobación | Resultado | Límite |
+|---|---|---|
+| Pruebas unitarias | 30 aprobadas: 13 de MessageRules, 9 de reglas/JSON y 8 de ViewModels; 0 errores y 0 fallos | Backend y fotos simulados; sin consultas facturables |
+| `lintDebug` | 0 errores y 13 advertencias | Versiones de dependencias y 3 sugerencias de KTX; no sustituye una prueba en teléfono |
+| `assembleDebug` | APK generado en `app/build/outputs/apk/debug/app-debug.apk` | La app instalada tenía otra firma; se validó una copia separada |
+| `assembleDebugAndroidTest` y pruebas instrumentadas | 6 aprobadas, 0 omitidas y 0 fallos en Motorola Edge 50 Fusion, Android 16 (API 36) | 4 tests del flujo manual y 2 de cifrado/EXIF; no consultan al backend |
+| `git diff --check` | Sin errores de espacios | No valida el comportamiento de la app |
+
+Comando final: `./gradlew.bat testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest --console plain --max-workers=2` — **BUILD SUCCESSFUL**.
+
+La instalación habitual fue rechazada con `INSTALL_FAILED_UPDATE_INCOMPATIBLE` por una firma distinta. La limpieza automática del primer intento retiró la app habitual: se confirmó su ausencia y el usuario confirmó que no la había desinstalado. El borrador que pudiera haber tenido esa instalación no se pudo recuperar. Se reinstaló el APK habitual con la versión nueva.
+
+Después se ejecutó `./gradlew.bat connectedDebugAndroidTest -PisolatedDeviceTests=true --console plain --max-workers=2` — **BUILD SUCCESSFUL**, 6/6 tests aprobados. La copia se llama **Fiado (pruebas OCR)**, paquete `ar.com.fiado.ocrtest`, con datos separados. El ejecutor también la retiró al terminar; se reinstaló su APK para dejarla disponible. Su APK se guardó en `app/build/outputs/apk/ocrtest/Fiado-OCR-pruebas.apk`. Las instrucciones ahora recomiendan siempre la copia aislada para pruebas en teléfonos personales y las tareas `connected…` la activan automáticamente para prevenir otro borrado accidental de la app habitual.
+
+Los tests comprobaron carga/copia de mensaje, rechazo de importe inválido, conservación del borrador al recrear la actividad, suma en Complicados, persistencia cifrada y borrado de una credencial ficticia aislada, y una foto JPEG ficticia con EXIF de 90°, reducida a 1200 × 2400 píxeles dentro del límite de bytes.
+
+Pendiente: prueba real de una foto ficticia contra el backend/Gemini, revisión visual del flujo OCR, selección de contactos, cancelación de consulta en dispositivo y traspaso del mensaje a WhatsApp. No se ingresó ni solicitó el token del teléfono en el chat. [Instrucciones y archivos cambiados](docs/LECTURA_IA.md).
+
+## Evidencia histórica de la versión manual
+
 Resumen de la revisión del **3 de octubre de 2026**, sobre Fiado 0.2.1 y código base `5278c60`. Es evidencia de esa revisión; no implica una nueva ejecución después de cada cambio de documentación.
 
 | Comprobación | Resultado registrado | Límite |

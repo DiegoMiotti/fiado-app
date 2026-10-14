@@ -26,6 +26,25 @@ class FiadoViewModel(private val saved: SavedStateHandle) : ViewModel() {
   saved["originalPhone"] = phone
   saved["phone"] = MessageRules.internationalPhone(phone)?.let { "+$it" } ?: phone
  }
+ fun applyReading(reading: ar.com.fiado.readings.AppliedReading) {
+  // Validate the entire replacement before touching the existing draft.
+  require(reading.name.isNotBlank() && MessageRules.internationalPhone(reading.phone) != null)
+  if (reading.previous == null) require(MessageRules.amount(reading.total) != null)
+  else {
+   require(MessageRules.amount(reading.previous) != null && reading.additions.isNotEmpty())
+   val values = reading.additions.map { requireNotNull(MessageRules.amount(it)) }
+   require(values.fold(requireNotNull(MessageRules.amount(reading.previous)), java.math.BigDecimal::add)
+    .compareTo(reading.total.toBigDecimal()) == 0)
+  }
+  saved["amount"] = if (reading.previous == null) MessageRules.formatInput(reading.total) else ""
+  saved["complicated"] = reading.previous != null
+  saved["previous"] = reading.previous?.let(MessageRules::formatInput).orEmpty()
+  saved["additions"] = if (reading.previous == null) arrayListOf("")
+   else ArrayList(reading.additions.map(MessageRules::formatInput))
+  saved["name"] = reading.name
+  saved["originalPhone"] = reading.originalPhone
+  saved["phone"] = reading.phone
+ }
  fun clear() {
   listOf("amount", "name", "originalPhone", "phone").forEach { saved[it] = "" }
   saved["complicated"] = false

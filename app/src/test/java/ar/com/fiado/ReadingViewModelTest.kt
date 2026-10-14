@@ -1,0 +1,134 @@
+package ar.com.fiado
+
+import androidx.lifecycle.SavedStateHandle
+import ar.com.fiado.readings.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.test.*
+import org.junit.Assert.*
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class ReadingViewModelTest {
+ private val dispatcher = StandardTestDispatcher()
+ @Before fun setup() { Dispatchers.setMain(dispatcher) }
+ @After fun cleanup() { Dispatchers.resetMain() }
+ private class Store(var connection: Connection = Connection(token = "fake-test-token")) : ConnectionStorage {
+  override fun read() = connection
+  override fun write(connection: Connection) { this.connection = connection }
+  override fun delete() { connection = Connection() }
+ }
+ private val photos = object : PhotoPreparation {
+  override suspend fun prepare(uri: String) = PreparedPhoto(null, byteArrayOf(1, 2, 3))
+ }
+ private fun model(store: Store = Store(), gateway: ReadingGateway = object : ReadingGateway {
+  override suspend fun read(connection: Connection, jpeg: ByteArray) = ReadingJson.parse(sampleReading)
+ }) = ReadingViewModel(store, gateway, photos, dispatcher)
+ @Test fun noCredentialNeverCallsBackend() = runTest(dispatcher) {
+  var calls = 0
+  val model = model(Store(Connection()), object : ReadingGateway {
+   override suspend fun read(connection: Connection, jpeg: ByteArray): Reading { calls++; error("Must not call") }
+  })
+  advanceUntilIdle()
+  model.choosePhoto("fake-photo"); advanceUntilIdle()
+  model.readPhoto(); advanceUntilIdle()
+  assertEquals(0, calls)
+  assertTrue(model.state.value.notice!!.contains("token"))
+ }
+ @Test fun duplicateRequestsAreIgnoredAndCancellationDiscardsResults() = runTest(dispatcher) {
+  var calls = 0
+  val response = CompletableDeferred<Reading>()
+  val model = model(gateway = object : ReadingGateway {
+   override suspend fun read(connection: Connection, jpeg: ByteArray): Reading { calls++; return response.await() }
+  })
+  advanceUntilIdle(); model.choosePhoto("fake"); advanceUntilIdle()
+  model.readPhoto(); model.readPhoto(); runCurrent()
+  assertEquals(1, calls)
+  assertTrue(model.state.value.busy)
+  model.cancel(); response.complete(ReadingJson.parse(sampleReading)); advanceUntilIdle()
+  assertNull(model.state.value.reading)
+  assertNull(model.state.value.photo)
+  assertFalse(model.state.value.busy)
+ }
+ @Test fun failedOrCancelledReadingNeverTouchesCurrentDraft() = runTest(dispatcher) {
+  val fiado = FiadoViewModel(SavedStateHandle())
+  fiado.amount("2500"); fiado.contact("Anterior", "23456789")
+  val model = model(gateway = object : ReadingGateway {
+   override suspend fun read(connection: Connection, jpeg: ByteArray): Reading = throw ReadingFailure("Error simulado")
+  })
+  advanceUntilIdle(); model.choosePhoto("fake"); advanceUntilIdle(); model.readPhoto(); advanceUntilIdle()
+  model.apply(fiado::applyReading)
+  assertEquals("Error simulado", model.state.value.notice)
+  model.cancel()
+  assertEquals("2500", fiado.amount.value)
+  assertEquals("Anterior", fiado.name.value)
+ }
+ @Test fun timeoutEndsLoadingWithoutRetrying() = runTest(dispatcher) {
+  var calls = 0
+  val model = model(gateway = object : ReadingGateway {
+   override suspend fun read(connection: Connection, jpeg: ByteArray): Reading {
+    calls++; delay(70_000); return ReadingJson.parse(sampleReading)
+   }
+  })
+  advanceUntilIdle(); model.choosePhoto("fake"); advanceUntilIdle(); model.readPhoto(); advanceUntilIdle()
+  assertEquals(1, calls)
+  assertFalse(model.state.value.busy)
+  assertNull(model.state.value.reading)
+  assertTrue(model.state.value.notice!!.contains("tiempo"))
+ }
+ @Test fun editsInvalidateConfirmationAndApplicationReplacesOldFields() = runTest(dispatcher) {
+  val fiado = FiadoViewModel(SavedStateHandle())
+  fiado.complicated(true); fiado.previous("9000"); fiado.addition(0, "8000")
+  val model = model()
+  advanceUntilIdle(); model.choosePhoto("fake"); advanceUntilIdle(); model.readPhoto(); advanceUntilIdle()
+  model.contact(model.session, "Leonardo", "23456789")
+  model.confirm(true)
+  model.movement(0) { it.copy(amount = "14000") }
+  assertFalse(model.state.value.confirmed)
+  model.apply(fiado::applyReading)
+  assertEquals("9000", fiado.previous.value)
+  model.confirm(true); model.apply(fiado::applyReading)
+  assertEquals("12.000", fiado.amount.value)
+  assertFalse(fiado.complicated.value)
+  assertEquals("", fiado.previous.value)
+  assertEquals(listOf(""), fiado.additions.value)
+  assertEquals("Leo", fiado.name.value)
+  assertEquals("+5491123456789", fiado.phone.value)
+  assertNull(model.state.value.photo)
+ }
+ @Test fun staleContactDoesNotCrossBlocksAndSwitchResetsConfirmation() = runTest(dispatcher) {
+  val reading = ReadingJson.parse(sampleReading).let { it.copy(clients = it.clients + it.clients.single().copy(name = "Otro")) }
+  val model = model(gateway = object : ReadingGateway { override suspend fun read(connection: Connection, jpeg: ByteArray) = reading })
+  advanceUntilIdle(); model.choosePhoto("fake"); advanceUntilIdle(); model.readPhoto(); advanceUntilIdle()
+  val oldSession = model.session
+  model.contact(oldSession, "Leo", "23456789"); model.confirm(true); model.select(1)
+  model.contact(oldSession, "Leo", "23456789")
+  assertNull(model.state.value.contact)
+  assertFalse(model.state.value.confirmed)
+ }
+ @Test fun connectionCanBeReplacedDeletedAndNotReusedOnAnotherServer() = runTest(dispatcher) {
+  val store = Store()
+  val model = model(store)
+  advanceUntilIdle()
+  model.saveConnection("https://other.example", ""); advanceUntilIdle()
+  assertEquals(DEFAULT_BACKEND, store.connection.url)
+  model.saveConnection("https://other.example", "new-fake-token"); advanceUntilIdle()
+  assertEquals("new-fake-token", store.connection.token)
+  model.deleteConnection(); advanceUntilIdle()
+  assertFalse(model.state.value.hasToken)
+  assertEquals("", store.connection.token)
+ }
+ @Test fun complicatedApplicationKeepsExactBreakdownAndRejectsInvalidBeforeMutation() {
+  val model = FiadoViewModel(SavedStateHandle())
+  model.amount("2000")
+  val valid = ReviewRules.application(client(movement(MovementType.SALDO, "10000"), movement(MovementType.CARGO, "5000")), reviewContact, true, true)!!
+  model.applyReading(valid)
+  assertTrue(model.complicated.value)
+  assertEquals("10.000", model.previous.value)
+  assertEquals(listOf("5.000"), model.additions.value)
+  assertEquals("", model.amount.value)
+  assertTrue(runCatching { model.applyReading(valid.copy(total = "999")) }.isFailure)
+  assertEquals("10.000", model.previous.value)
+ }
+}

@@ -71,27 +71,23 @@ internal fun AudioDialog(onSend: (ByteArray) -> Unit, onClose: () -> Unit) {
  AlertDialog(onDismissRequest = onClose, title = { Text("Grabar cuenta") },
   text = {
    Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-    Text("Decí, por ejemplo: Leo me debe 4000 de la cerveza más 300 de las salchichas.")
-    Text("Se enviará el archivo de audio original al backend y al modelo de IA para interpretar la cuenta. Cada lectura puede consumir cuota y saldo.")
     Text(when { recording -> "Grabando… Máximo 60 segundos."
      preparing -> "Preparando audio…"
-     audio != null -> "Audio listo para enviar a la IA."
-     else -> "El audio se envía cuando tocás Enviar audio a IA." })
+     audio != null -> "Audio listo."
+     else -> "Máximo 60 segundos." })
     FilledTonalButton(onClick = {
      if (recording) stop()
      else if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) start()
      else permission.launch(Manifest.permission.RECORD_AUDIO)
     }, enabled = !preparing, modifier = Modifier.fillMaxWidth()) {
-     Text(if (recording) "Detener grabación" else if (audio == null) "Empezar a grabar" else "Volver a grabar")
+     Text(if (recording) "Detener" else if (audio == null) "Grabar" else "Volver a grabar")
     }
     error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-    Text("La IA devolverá los importes y sus detalles para revisar. Si ya cargaste una foto, se conserva como referencia.",
-     style = MaterialTheme.typography.bodySmall)
    }
   },
   confirmButton = {
    TextButton(onClick = { audio?.let(onSend) }, enabled = audio != null && !recording && !preparing) {
-    Text("Enviar audio a IA")
+    Text("Usar audio")
    }
   },
   dismissButton = { TextButton(onClick = onClose) { Text("Cancelar") } })

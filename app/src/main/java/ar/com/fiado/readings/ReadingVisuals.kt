@@ -50,21 +50,19 @@ internal fun LargeAmount(value: BigDecimal) {
 }
 
 @Composable
-internal fun TotalCard(total: BigDecimal?, label: String = "Total calculado") {
+internal fun TotalCard(total: BigDecimal?, label: String = "Total") {
  Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
   Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
    Text(label, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
    if (total == null) Text("Pendiente de completar", style = MaterialTheme.typography.titleLarge)
    else LargeAmount(total)
-   Text("Pesos argentinos · Detalle de Complicados", style = MaterialTheme.typography.bodySmall)
   }
  }
 }
 
 @Composable
-internal fun SectionTitle(step: String, title: String) {
+internal fun SectionTitle(title: String) {
  Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-  Text(step, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
   Text(title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
  }
 }

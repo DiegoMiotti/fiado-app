@@ -102,10 +102,10 @@ class FiadoDeviceTest {
  }
  @Test fun unreadAmountCanBeCorrectedAndSharedWithoutAnotherQuery() {
   show(amount = "", serverTotal = null); readPhoto()
-  compose.onNodeWithText("Corregir lectura").performScrollTo().performClick()
-  compose.onNodeWithText("Guardar correcciones").performScrollTo().assertIsNotEnabled()
+  compose.onNodeWithText("Corregir cuenta").performScrollTo().performClick()
+  compose.onNodeWithText("Guardar").performScrollTo().assertIsNotEnabled()
   compose.onNodeWithText("Importe 2").performScrollTo().performTextReplacement("4200")
-  compose.onNodeWithText("Guardar correcciones").performScrollTo().assertIsEnabled().performClick()
+  compose.onNodeWithText("Guardar").performScrollTo().assertIsEnabled().performClick()
   compose.runOnIdle { model.contact(model.session, "Leonardo", "23456789") }
   compose.onNodeWithText("Confirmar y abrir WhatsApp").performScrollTo().assertIsEnabled().performClick()
   compose.runOnIdle { assertTrue(opened!!.message.contains("11.200")); assertEquals(1, calls) }
@@ -113,9 +113,9 @@ class FiadoDeviceTest {
  @Test fun discardingCorrectionsKeepsThePreviousMessage() {
   show(); readPhoto()
   compose.runOnIdle { model.contact(model.session, "Leonardo", "23456789") }
-  compose.onNodeWithText("Corregir lectura").performScrollTo().performClick()
+  compose.onNodeWithText("Corregir cuenta").performScrollTo().performClick()
   compose.onNodeWithText("Importe 2").performScrollTo().performTextReplacement("9999")
-  compose.onNodeWithText("Descartar correcciones").performScrollTo().performClick()
+  compose.onNodeWithText("Cancelar").performScrollTo().performClick()
   compose.onNodeWithText("Confirmar y abrir WhatsApp").performScrollTo().assertIsEnabled().performClick()
   compose.runOnIdle { assertTrue(opened!!.message.contains("11.200")); assertFalse(opened!!.message.contains("9.999")) }
  }
@@ -123,9 +123,9 @@ class FiadoDeviceTest {
   show(failReading = true)
   compose.runOnIdle { model.choosePhoto("fixture", autoRead = true) }
   compose.waitUntil(5000) { !model.state.value.busy && model.state.value.notice != null }
-  compose.onNodeWithText("Completar cuenta a mano").performScrollTo().performClick()
+  compose.onNodeWithText("Completar a mano").performScrollTo().performClick()
   compose.onNodeWithText("Importe 1").performScrollTo().performTextReplacement("1500")
-  compose.onNodeWithText("Guardar correcciones").performScrollTo().assertIsEnabled().performClick()
+  compose.onNodeWithText("Guardar").performScrollTo().assertIsEnabled().performClick()
   compose.runOnIdle { model.contact(model.session, "Leonardo", "23456789") }
   compose.onNodeWithText("Confirmar y abrir WhatsApp").performScrollTo().assertIsEnabled().performClick()
   compose.runOnIdle { assertTrue(opened!!.message.contains("1.500")); assertEquals(1, calls) }

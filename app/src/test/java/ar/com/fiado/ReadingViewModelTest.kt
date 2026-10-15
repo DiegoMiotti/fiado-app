@@ -151,6 +151,62 @@ class ReadingViewModelTest {
   assertFalse(model.state.value.hasToken)
   assertEquals("", store.connection.token)
  }
+ @Test fun correctionsAreIsolatedUntilSavedAndCancellationPreservesOriginal() = runTest(dispatcher) {
+  val model = model()
+  advanceUntilIdle(); model.choosePhoto("fixture", autoRead = true); advanceUntilIdle()
+  model.contact(model.session, "Leonardo", "23456789")
+  val original = model.state.value.automaticDraft()!!
+  model.beginCorrection()
+  model.correctionMovement(0) { it.copy(amount = "14000") }
+  assertEquals("13000", model.state.value.client!!.movements[0].amount)
+  model.cancelCorrection()
+  assertEquals(original, model.state.value.automaticDraft())
+  model.beginCorrection(); model.correctionMovement(0) { it.copy(amount = "14000") }
+  assertTrue(model.saveCorrection())
+  assertEquals("14000", model.state.value.client!!.movements[0].amount)
+  assertTrue(model.state.value.automaticDraft()!!.message.contains("12.000"))
+  assertNull(model.state.value.correction)
+  assertTrue(0 in model.state.value.correctedClients)
+  model.choosePhoto("another", autoRead = true); advanceUntilIdle()
+  assertTrue(model.state.value.correctedClients.isEmpty())
+ }
+ @Test fun failedReadingCanBeCompletedLocallyWithoutAnotherBackendCall() = runTest(dispatcher) {
+  var calls = 0
+  val model = model(gateway = object : ReadingGateway {
+   override suspend fun read(connection: Connection, jpeg: ByteArray): Reading {
+    calls++; throw ReadingFailure("Lectura ficticia fallida")
+   }
+  })
+  advanceUntilIdle(); model.choosePhoto("fixture", autoRead = true); advanceUntilIdle()
+  model.beginCorrection()
+  assertFalse(model.saveCorrection())
+  model.correctionMovement(0) { it.copy(amount = "5000") }
+  model.addCorrectionMovement()
+  model.correctionMovement(1) { it.copy(type = MovementType.PAGO, amount = "2000") }
+  assertTrue(model.saveCorrection())
+  model.contact(model.session, "Leonardo", "23456789")
+  val draft = model.state.value.automaticDraft()!!
+  assertTrue(draft.message.contains("TOTAL  $ 3.000"))
+  assertTrue(draft.message.contains("- Pago"))
+  assertEquals(1, calls)
+  assertNull(model.state.value.notice)
+ }
+ @Test fun manualCorrectionsCannotAuthorizeOtherClientBlocks() = runTest(dispatcher) {
+  val reading = ReadingJson.parse(sampleReading).let {
+   val unknown = it.clients.single().copy(serverTotal = null)
+   it.copy(clients = listOf(unknown, unknown.copy(name = "Otro")))
+  }
+  val model = model(gateway = object : ReadingGateway { override suspend fun read(connection: Connection, jpeg: ByteArray) = reading })
+  advanceUntilIdle(); model.choosePhoto("fixture", autoRead = true); advanceUntilIdle()
+  model.beginCorrection(); assertNull(model.state.value.correction)
+  model.select(0); model.beginCorrection(); assertTrue(model.saveCorrection())
+  model.contact(model.session, "Leo", "23456789")
+  assertNotNull(model.state.value.automaticDraft())
+  model.select(1); model.contact(model.session, "Otro", "23456789")
+  assertNull(model.state.value.automaticDraft())
+  assertTrue(0 in model.state.value.correctedClients)
+  assertFalse(1 in model.state.value.correctedClients)
+ }
  @Test fun complicatedApplicationKeepsExactBreakdownAndRejectsInvalidBeforeMutation() {
   val model = FiadoViewModel(SavedStateHandle())
   model.amount("2000")

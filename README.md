@@ -30,7 +30,7 @@ Capturas reales con importes ficticios, sin nombres ni teléfonos.
 
 ## Cómo funciona
 
-En esta variante no se escriben montos. La foto se consulta al backend y el mensaje usa siempre el formato detallado de Complicados, con cargos que suman y pagos que restan. [Configuración y uso](docs/FLUJO_AUTOMATICO.md).
+En esta variante los montos se leen automáticamente de la foto. Si la IA se equivoca, **Corregir lectura** permite remendar la cuenta; si la consulta falla, también se puede completar mirando la foto. El mensaje usa siempre el formato detallado de Complicados, con cargos que suman y pagos que restan. [Configuración y uso](docs/FLUJO_AUTOMATICO.md).
 
 1. **Sacá una foto** o elegí una guardada: la cuenta se lee automáticamente.
 2. **Elegí el contacto** y comprobá la foto, los movimientos y el mensaje listo.

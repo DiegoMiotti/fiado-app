@@ -12,27 +12,33 @@ data class WhatsAppDraft(val phone: String, val message: String)
 
 /** Photo-only flow: the final WhatsApp action confirms the visible photo, account and contact. */
 object AutomaticMessageRules {
- fun problem(reading: Reading, index: Int, selectedExplicitly: Boolean): String? {
+ fun problem(reading: Reading, index: Int, selectedExplicitly: Boolean, manuallyCorrected: Boolean = false): String? {
   if (!selectedExplicitly) return "La foto tiene varios clientes. Elegí la cuenta que querés cobrar."
-  val client = reading.clients.getOrNull(index) ?: return "No se encontró una cuenta en la foto. Sacá otra foto."
+  val client = reading.clients.getOrNull(index) ?: return "No se encontró una cuenta en la foto. Podés completarla a mano."
+  localProblem(client)?.let { return it }
+  if (!manuallyCorrected) {
+   if (client.serverTotal == null) return "El backend no pudo confirmar el total. Revisá y corregí la lectura."
+   if (ReviewRules.total(client)!!.compareTo(client.serverTotal) != 0)
+    return "Los movimientos no coinciden con el total del backend. Revisá y corregí la lectura."
+  }
+  return null
+ }
+
+ fun localProblem(client: ClientReading): String? {
   val movements = client.movements.filter { it.included }
-  if (movements.isEmpty()) return "No se detectaron movimientos. Sacá otra foto."
+  if (movements.isEmpty()) return "Agregá al menos un movimiento para esta cuenta."
   if (movements.any { MessageRules.amount(it.amount) == null })
-   return "Hay importes que no se pudieron leer con certeza. Sacá otra foto más clara."
+   return "Hay importes incompletos o inválidos. Corregilos o excluí esos movimientos."
   if (ReviewRules.multipleBalances(client))
-   return "Se detectó más de un saldo anterior. Fotografíá una sola cuenta con un único saldo."
-  val total = ReviewRules.total(client) ?: return "No se pudo calcular el total. Sacá otra foto."
+   return "Hay más de un saldo anterior. Corregí el tipo o excluí los saldos duplicados."
+  val total = ReviewRules.total(client) ?: return "Completá los importes para calcular el total."
   if (total <= BigDecimal.ZERO) return "Esta cuenta no tiene un total positivo para cobrar."
-  if (client.serverTotal == null)
-   return "El backend no pudo confirmar el total. Sacá otra foto más clara."
-  if (total.compareTo(client.serverTotal) != 0)
-   return "Los movimientos no coinciden con el total del backend. Sacá otra foto."
   return null
  }
 
  fun draft(reading: Reading, index: Int, selectedExplicitly: Boolean, contact: ReviewContact?,
-  clock: Clock = Clock.systemDefaultZone()): WhatsAppDraft? {
-  if (problem(reading, index, selectedExplicitly) != null || contact == null) return null
+  clock: Clock = Clock.systemDefaultZone(), manuallyCorrected: Boolean = false): WhatsAppDraft? {
+  if (problem(reading, index, selectedExplicitly, manuallyCorrected) != null || contact == null) return null
   val phone = MessageRules.internationalPhone(contact.phone) ?: return null
   val client = reading.clients[index]
   val movements = client.movements.filter { it.included }

@@ -17,7 +17,8 @@ class FiadoDeviceTest {
  private lateinit var model: ReadingViewModel
  private var opened: WhatsAppDraft? = null
  private var calls = 0
- private fun show(token: String = "fixture-only", amount: String = "4200", serverTotal: BigDecimal? = BigDecimal("11200")) {
+ private fun show(token: String = "fixture-only", amount: String = "4200", serverTotal: BigDecimal? = BigDecimal("11200"),
+  failReading: Boolean = false) {
   compose.runOnUiThread {
    model = ReadingViewModel(object : ConnectionStorage {
     override fun read() = Connection(token = token)
@@ -26,6 +27,7 @@ class FiadoDeviceTest {
    }, object : ReadingGateway {
     override suspend fun read(connection: Connection, jpeg: ByteArray): Reading {
      calls++
+     if (failReading) throw ReadingFailure("Lectura ficticia fallida")
      return Reading("fixture", listOf(ClientReading("Leo", listOf(
       Movement(MovementType.SALDO, null, null, "10000", false),
       Movement(MovementType.CARGO, "lunes", null, amount, false),
@@ -93,5 +95,35 @@ class FiadoDeviceTest {
   compose.runOnIdle { model.contact(model.session, "Contacto", "123") }
   compose.onNodeWithText("Confirmar y abrir WhatsApp").performScrollTo().assertIsNotEnabled()
   assertNull(opened)
+ }
+ @Test fun unreadAmountCanBeCorrectedAndSharedWithoutAnotherQuery() {
+  show(amount = "", serverTotal = null); readPhoto()
+  compose.onNodeWithText("Corregir lectura").performScrollTo().performClick()
+  compose.onNodeWithText("Guardar correcciones").performScrollTo().assertIsNotEnabled()
+  compose.onNodeWithText("Importe 2").performScrollTo().performTextReplacement("4200")
+  compose.onNodeWithText("Guardar correcciones").performScrollTo().assertIsEnabled().performClick()
+  compose.runOnIdle { model.contact(model.session, "Leonardo", "23456789") }
+  compose.onNodeWithText("Confirmar y abrir WhatsApp").performScrollTo().assertIsEnabled().performClick()
+  compose.runOnIdle { assertTrue(opened!!.message.contains("11.200")); assertEquals(1, calls) }
+ }
+ @Test fun discardingCorrectionsKeepsThePreviousMessage() {
+  show(); readPhoto()
+  compose.runOnIdle { model.contact(model.session, "Leonardo", "23456789") }
+  compose.onNodeWithText("Corregir lectura").performScrollTo().performClick()
+  compose.onNodeWithText("Importe 2").performScrollTo().performTextReplacement("9999")
+  compose.onNodeWithText("Descartar correcciones").performScrollTo().performClick()
+  compose.onNodeWithText("Confirmar y abrir WhatsApp").performScrollTo().assertIsEnabled().performClick()
+  compose.runOnIdle { assertTrue(opened!!.message.contains("11.200")); assertFalse(opened!!.message.contains("9.999")) }
+ }
+ @Test fun failedAiReadingOffersManualCompletionFromThePhoto() {
+  show(failReading = true)
+  compose.runOnIdle { model.choosePhoto("fixture", autoRead = true) }
+  compose.waitUntil(5000) { !model.state.value.busy && model.state.value.notice != null }
+  compose.onNodeWithText("Completar cuenta a mano").performScrollTo().performClick()
+  compose.onNodeWithText("Importe 1").performScrollTo().performTextReplacement("1500")
+  compose.onNodeWithText("Guardar correcciones").performScrollTo().assertIsEnabled().performClick()
+  compose.runOnIdle { model.contact(model.session, "Leonardo", "23456789") }
+  compose.onNodeWithText("Confirmar y abrir WhatsApp").performScrollTo().assertIsEnabled().performClick()
+  compose.runOnIdle { assertTrue(opened!!.message.contains("1.500")); assertEquals(1, calls) }
  }
 }

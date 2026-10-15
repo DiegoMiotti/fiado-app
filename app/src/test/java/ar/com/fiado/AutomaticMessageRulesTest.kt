@@ -63,6 +63,30 @@ class AutomaticMessageRulesTest {
    reading()
   ).forEach { assertNull(AutomaticMessageRules.draft(it, 0, true, reviewContact, clock)) }
  }
+ @Test fun explicitlyCorrectedAccountUsesLocalTotalWhenAiTotalIsUnknownOrWrong() {
+  val original = reading(movement(MovementType.CARGO, "5000"))
+  listOf(null, BigDecimal("9000")).forEach { total ->
+   val corrected = original.copy(clients = listOf(original.clients.single().copy(serverTotal = total)))
+   assertNull(AutomaticMessageRules.draft(corrected, 0, true, reviewContact, clock))
+   val draft = AutomaticMessageRules.draft(corrected, 0, true, reviewContact, clock, manuallyCorrected = true)!!
+   assertTrue(draft.message.contains("TOTAL  $ 5.000"))
+  }
+ }
+ @Test fun manualConfirmationNeverBypassesInvalidAmountsBalancesOrNonPositiveTotals() {
+  listOf(reading(movement(MovementType.CARGO, "")),
+   reading(movement(MovementType.CARGO, "1000000000")),
+   reading(movement(MovementType.SALDO, "1"), movement(MovementType.SALDO, "2")),
+   reading(movement(MovementType.PAGO, "10"))).forEach {
+   assertNull(AutomaticMessageRules.draft(it, 0, true, reviewContact, clock, manuallyCorrected = true))
+  }
+ }
+ @Test fun excludingAnIncorrectDuplicatePreservesPaymentSubtraction() {
+  val corrected = reading(movement(MovementType.CARGO, "5000"), movement(MovementType.PAGO, "2000"),
+   movement(MovementType.CARGO, "3000", included = false))
+  val draft = AutomaticMessageRules.draft(corrected, 0, true, reviewContact, clock, manuallyCorrected = true)!!
+  assertTrue(draft.message.contains("TOTAL  $ 3.000"))
+  assertTrue(draft.message.contains("- Pago"))
+ }
  @Test fun multipleClientsRequireSelectionAndNeverCombineTheirBalances() {
   val first = reading(movement(MovementType.CARGO, "1000"))
   val second = reading(movement(MovementType.CARGO, "9000")).clients.single()

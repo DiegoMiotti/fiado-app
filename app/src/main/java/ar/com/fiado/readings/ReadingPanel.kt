@@ -115,9 +115,11 @@ fun ReadingPanel(model: ReadingViewModel, openWhatsApp: (String, String) -> Bool
    }
    state.notice?.let { WarningText(it) }
    notice?.let { WarningText(it) }
-   if (state.photo != null && state.reading == null && !state.busy && state.notice != null)
+   if (state.photo != null && state.reading == null && !state.busy && state.notice != null) {
     OutlinedButton(onClick = model::readPhoto, enabled = state.hasToken && !state.configBusy,
      modifier = Modifier.fillMaxWidth()) { Text("Reintentar lectura") }
+    FilledTonalButton(onClick = model::beginCorrection, modifier = Modifier.fillMaxWidth()) { Text("Completar cuenta a mano") }
+   }
    state.reading?.let { reading ->
     if (reading.clients.size > 1) {
      Text("La foto tiene varias cuentas. Elegí una:", style = MaterialTheme.typography.titleMedium)
@@ -131,6 +133,9 @@ fun ReadingPanel(model: ReadingViewModel, openWhatsApp: (String, String) -> Bool
     if (state.selectedExplicitly) state.client?.let { client ->
      Text("Cuenta en el papel: ${client.name.ifBlank { "sin nombre" }}", style = MaterialTheme.typography.titleMedium)
      ReadingSummary(client, reading.warnings)
+     if (state.selected in state.correctedClients) Text("Cuenta corregida a mano. El total se recalculó con tus movimientos.")
+     OutlinedButton(onClick = model::beginCorrection, enabled = !contactPending,
+      modifier = Modifier.fillMaxWidth()) { Text("Corregir lectura") }
     }
     val problem = state.automaticProblem
     if (problem != null) WarningText(problem)
@@ -169,6 +174,60 @@ fun ReadingPanel(model: ReadingViewModel, openWhatsApp: (String, String) -> Bool
   }
  }
  if (settings) ConnectionDialog(state, model) { settings = false }
+ state.correction?.let { correction -> CorrectionDialog(state, correction, model) }
+}
+
+@Composable private fun CorrectionDialog(state: ReadingState, correction: ReadingCorrection, model: ReadingViewModel) {
+ Dialog(onDismissRequest = model::cancelCorrection, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+  BackHandler { model.cancelCorrection() }
+  Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+   Column(Modifier.fillMaxSize().safeDrawingPadding().imePadding().verticalScroll(rememberScrollState()).padding(20.dp),
+    verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Text("Corregir cuenta", style = MaterialTheme.typography.headlineSmall)
+    Text("Compará los movimientos con la foto. Podés completar importes, cambiar tipos, agregar filas o excluir totales duplicados. No se vuelve a consultar a la IA.")
+    TextButton(onClick = model::cancelCorrection) { Text("Descartar correcciones") }
+    state.photo?.preview?.let { Image(it.asImageBitmap(), "Foto para corregir la cuenta",
+     modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp)) }
+    OutlinedTextField(correction.client.name, model::correctionName, label = { Text("Nombre en el papel (opcional)") },
+     modifier = Modifier.fillMaxWidth(), singleLine = true)
+    correction.client.movements.forEachIndexed { index, movement ->
+     Card(Modifier.fillMaxWidth()) {
+      Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+       Row {
+        Checkbox(movement.included, { value -> model.correctionMovement(index) { it.copy(included = value) } })
+        Text("Usar movimiento ${index + 1}", modifier = Modifier.padding(top = 12.dp))
+       }
+       Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        MovementType.entries.forEach { type ->
+         FilterChip(selected = movement.type == type, enabled = movement.included,
+          onClick = { model.correctionMovement(index) { it.copy(type = type) } }, label = { Text(type.label) })
+        }
+       }
+       OutlinedTextField(movement.amount, { value -> model.correctionMovement(index) { it.copy(amount = value) } },
+        label = { Text("Importe ${index + 1}") }, prefix = { Text("$") }, modifier = Modifier.fillMaxWidth(), singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), enabled = movement.included,
+        isError = movement.included && MessageRules.amount(movement.amount) == null,
+        supportingText = { Text("Pesos enteros de 1 a 999.999.999; no se recortan cifras.") })
+       OutlinedTextField(movement.reference.orEmpty(),
+        { value -> model.correctionMovement(index) { it.copy(reference = value.ifBlank { null }) } },
+        label = { Text("Referencia ${index + 1} (opcional)") }, modifier = Modifier.fillMaxWidth(), enabled = movement.included)
+       OutlinedTextField(movement.detail.orEmpty(),
+        { value -> model.correctionMovement(index) { it.copy(detail = value.ifBlank { null }) } },
+        label = { Text("Detalle ${index + 1} (opcional)") }, modifier = Modifier.fillMaxWidth(), enabled = movement.included)
+      }
+     }
+    }
+    OutlinedButton(onClick = model::addCorrectionMovement, modifier = Modifier.fillMaxWidth()) { Text("Agregar movimiento") }
+    Text("Total recalculado: ${ReviewRules.total(correction.client)?.toPlainString()?.let { "$$it" } ?: "pendiente de completar"}",
+     style = MaterialTheme.typography.titleLarge)
+    val problem = AutomaticMessageRules.localProblem(correction.client)
+    problem?.let { WarningText(it) }
+    Text("Al guardar confirmás que los movimientos coinciden con el papel. Se usará este total local aunque la IA no haya podido calcularlo.")
+    Button(onClick = { model.saveCorrection() }, enabled = problem == null,
+     modifier = Modifier.fillMaxWidth()) { Text("Guardar correcciones") }
+   }
+  }
+ }
 }
 
 @Composable private fun ReadingSummary(client: ClientReading, globalWarnings: List<String>) {

@@ -1,5 +1,18 @@
 # Validación y pendientes
 
+## Corrección opcional de lecturas — 15 de octubre de 2026
+
+Rama `codex/flujo-foto-whatsapp-automatico`.
+
+- 47 tests unitarios aprobados, 0 fallos y 0 errores: se sumaron 3 casos de reglas y 3 de ViewModel para confirmar totales corregidos, conservar la lectura al descartar, completar una consulta fallida sin reintentar la IA y aislar las correcciones por cliente/foto.
+- 13 pruebas instrumentadas aprobadas en Motorola Edge 50 Fusion, Android 16: incluyen corregir un importe ilegible, descartar ediciones conservando el mensaje anterior y completar la cuenta tras un fallo de IA.
+- `lintDebug`, `assembleDebug` y `assembleDebugAndroidTest`: **BUILD SUCCESSFUL**, lint con 0 errores y 42 advertencias (dependencias, recursos antiguos sin uso y KTX).
+- La corrección se edita en un borrador separado. Solo **Guardar correcciones** autoriza usar el total local frente a un total de IA nulo o diferente. Importes inválidos, múltiples saldos y totales no positivos siguen bloqueados. Otra foto no hereda esa autorización.
+- Los tests usan una copia aislada y servicios simulados; no se envían mensajes ni se consume cuota de IA. La prueba real del proveedor sigue pendiente.
+- APK normal con correcciones instalado correctamente mediante `adb install -r` y abierto en el Motorola (`ar.com.fiado/.MainActivity`). Se comprobó únicamente la existencia del archivo cifrado, sin leer su contenido: esta instalación no tiene una credencial guardada y requiere ingresar el token en la app. No se desinstaló ninguna app para instalarla.
+
+Ver [flujo y corrección manual](docs/FLUJO_AUTOMATICO.md).
+
 ## Variante automática por foto — 15 de octubre de 2026
 
 Rama local `codex/flujo-foto-whatsapp-automatico`, basada en `e53c677`. [Flujo y archivos cambiados](docs/FLUJO_AUTOMATICO.md).

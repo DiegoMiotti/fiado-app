@@ -14,6 +14,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.input.KeyboardType
@@ -39,8 +41,20 @@ fun ReadingPanel(model: ReadingViewModel, apply: (AppliedReading) -> Unit,
  var pickerNotice by remember { mutableStateOf<String?>(null) }
  var contactSession by remember { mutableIntStateOf(0) }
  val scope = rememberCoroutineScope()
+ val context = LocalContext.current
+ var cameraUri by rememberSaveable { mutableStateOf<String?>(null) }
+ val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { saved ->
+  val uri = cameraUri?.let(Uri::parse)
+  cameraUri = null
+  if (saved && uri != null) {
+   pickerNotice = null
+   model.choosePhoto(uri.toString())
+  } else {
+   uri?.let { CameraPhotos.discard(context, it) }
+  }
+ }
  val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-  uri?.let { model.choosePhoto(it.toString()) }
+  uri?.let { pickerNotice = null; model.choosePhoto(it.toString()) }
  }
  val contactPicker = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
   if (result.resultCode == android.app.Activity.RESULT_OK) {
@@ -55,12 +69,25 @@ fun ReadingPanel(model: ReadingViewModel, apply: (AppliedReading) -> Unit,
  Card(modifier = Modifier.fillMaxWidth()) {
   Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
    Text("Leer papel con OCR + IA", style = MaterialTheme.typography.titleMedium)
-   Text("Elegí una foto y revisá los movimientos antes de reemplazar este cobro.")
+   Text("Sacá una foto del papel o elegí una de tu galería. Después revisá los movimientos.")
+   FilledTonalButton(onClick = {
+    try {
+     val uri = CameraPhotos.create(context)
+     cameraUri = uri.toString()
+     camera.launch(uri)
+    } catch (_: Exception) {
+     cameraUri?.let { CameraPhotos.discard(context, Uri.parse(it)) }
+     cameraUri = null
+     pickerNotice = "No se pudo abrir la cámara. Podés elegir una foto de la galería."
+    }
+   }, enabled = !state.busy && !state.configBusy && cameraUri == null,
+    modifier = Modifier.fillMaxWidth()) { Text("Sacar foto") }
    FilledTonalButton(onClick = {
     try { photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
     catch (_: RuntimeException) { pickerNotice = "No se pudo abrir el selector de fotos." }
    }, enabled = !state.busy && !state.configBusy, modifier = Modifier.fillMaxWidth()) { Text("Elegir foto") }
    TextButton(onClick = { settings = true }, enabled = !state.busy) { Text("Conexión del backend") }
+   if (state.photo == null && !state.busy) state.notice?.let { Text(it, color = MaterialTheme.colorScheme.error) }
    if (!state.hasToken) Text("Falta configurar el token del teléfono.", style = MaterialTheme.typography.bodySmall)
    pickerNotice?.let { Text(it, color = MaterialTheme.colorScheme.error) }
   }

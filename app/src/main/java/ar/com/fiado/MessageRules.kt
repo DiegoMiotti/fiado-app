@@ -49,17 +49,25 @@ object MessageRules {
   val recipient = if (name.isEmpty()) "" else " $name"
   return "${greeting(LocalTime.now(clock))}$recipient, lo de hoy es: $$formatted"
  }
- fun detailedMessage(previous: String, additions: List<String>, clock: Clock = Clock.systemDefaultZone()): String? {
+ /** A monospace sum keeps columns aligned when pasted or opened in WhatsApp. */
+ fun detailedMessage(previous: String, additions: List<String>, clock: Clock = Clock.systemDefaultZone(),
+  contactName: String = ""): String? {
   val balance = amount(previous) ?: return null
   if (additions.isEmpty()) return null
   val values = additions.map { amount(it) ?: return null }
   val formatter = DecimalFormat("#,##0", DecimalFormatSymbols(Locale.forLanguageTag("es-AR")))
+  val total = values.fold(balance, BigDecimal::add)
+  val width = formatter.format(total).length
+  fun row(label: String, value: BigDecimal) = "${label.padEnd(7)}$ ${formatter.format(value).padStart(width)}"
+  val name = contactName.trim().replace(Regex("\\s+"), " ")
+  val recipient = if (name.isEmpty()) "" else " $name"
   return buildString {
-   append("${greeting(LocalTime.now(clock))}, hasta el día de hoy sería:\n")
-   append("${formatter.format(balance)}\n")
-   values.forEach { append("+ ${formatter.format(it)}\n") }
-   append("----------\n")
-   append(formatter.format(values.fold(balance, BigDecimal::add)))
+   append("${greeting(LocalTime.now(clock))}$recipient, hasta el día de hoy sería:\n")
+   append("```\n")
+   append(row("Saldo", balance)).append('\n')
+   values.forEach { append(row("+", it)).append('\n') }
+   append("-".repeat(9 + width)).append('\n')
+   append(row("TOTAL", total)).append("\n```")
   }
  }
  // This pilot uses Buenos Aires mobile numbers with the user-specified +54 9 11 prefix.

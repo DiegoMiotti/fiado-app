@@ -61,3 +61,9 @@ Una compilación o una prueba simulada no verifica Gemini con fotos. La prueba r
 | `ReadingRulesTest.kt`, `ReadingViewModelTest.kt`, `ReadingDeviceTest.kt` | Pruebas simuladas y pruebas de cifrado/EXIF en Android |
 
 Los archivos Kotlin de producción están bajo `app/src/main/java/ar/com/fiado/`; los tests están en sus respectivos árboles `test` y `androidTest`. `README.md` enlaza esta guía y `VALIDACION.md` distingue la evidencia de esta integración de las validaciones históricas.
+
+## Sacar una foto desde la app
+
+Tocá **Sacar foto** para abrir la cámara del teléfono, o **Elegir foto** para usar la galería. La captura se muestra en la revisión; no se consulta al backend hasta tocar **Enviar foto para lectura**. Si cancelás la cámara, el cobro se conserva.
+
+La cámara guarda una captura temporal en la caché privada mediante FileProvider. Se elimina al preparar la imagen o cancelar la cámara; las capturas abandonadas se limpian después de 24 horas al iniciar otra captura. Las fotos elegidas de la galería no se borran. El URI pendiente se conserva durante la recreación de la actividad. Se usa la aplicación de cámara del teléfono mediante `ActivityResultContracts.TakePicture`.

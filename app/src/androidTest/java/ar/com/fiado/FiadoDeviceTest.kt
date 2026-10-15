@@ -42,6 +42,7 @@ class FiadoDeviceTest {
  }
 
  @Test fun detailedSumCopiesAndPreservesDraft() {
+  compose.onNodeWithText("Sacar foto").performScrollTo().assertExists()
   compose.onNode(isToggleable()).performScrollTo().performClick()
   compose.onNodeWithText("Saldo anterior").performScrollTo().performTextInput("13800")
   compose.onNodeWithText("Monto a sumar 1").performScrollTo().performTextInput("9200")

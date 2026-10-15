@@ -1,5 +1,13 @@
 # Validación y pendientes
 
+## Cámara y suma de Complicados — 14 de octubre de 2026
+
+- `testDebugUnitTest`: 31 pruebas aprobadas, 0 fallos y 0 errores. Incluyen suma alineada, nombre del contacto, total superior al límite individual, rechazo de filas incompletas y conservación del texto en la URL de WhatsApp.
+- `lintDebug`, `assembleDebug` y `assembleDebugAndroidTest`: BUILD SUCCESSFUL. Lint: 0 errores y 17 advertencias sobre versiones/SDK y sugerencias de KTX.
+- APK actualizado: `app/build/outputs/apk/debug/app-debug.apk`.
+- Se agregó una prueba instrumentada que prepara una captura ficticia mediante FileProvider y comprueba la eliminación del archivo temporal. La prueba EXIF comprueba además que no se borra el archivo de entrada externo. Estas pruebas se compilaron, pero no se ejecutaron en esta revisión.
+- El teléfono fue autorizado posteriormente. La actualización de `ar.com.fiado` y de la copia OCR existente fue rechazada por firmas diferentes. Se instaló correctamente una copia nueva **Fiado (cámara)**, paquete `ar.com.fiado.camera20261014`, y se abrió mediante ADB; las instalaciones anteriores permanecen. Esta copia usa datos y credenciales separados. Quedan pendientes la captura con la cámara real, cancelación y recreación durante la captura, inspección visual y apertura de WhatsApp con el texto alineado. No se enviaron mensajes ni consultas al backend.
+
 ## Integración OCR + IA — 14 de octubre de 2026
 
 Validación local en la rama `codex/mejora-deteccion-ocr-ia`:

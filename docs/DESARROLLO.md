@@ -71,3 +71,9 @@ Las pruebas automatizadas no demuestran el traspaso real a WhatsApp. Para compro
 El [workflow habitual](../.github/workflows/build-apk.yml) ejecuta tests, lint y compilación; su APK temporal se conserva 14 días. La [Release 0.2.1](https://github.com/DiegoMiotti/fiado-app/releases/tag/v0.2.1) ofrece el APK de prueba y su checksum. El [workflow de Release](../.github/workflows/release.yml) está fijado a esa versión y evita reemplazarla: no sirve para publicar otra versión sin actualizarlo.
 
 Consultá [validación y pendientes](../VALIDACION.md) para distinguir comprobaciones reales de pruebas pendientes.
+
+## Suma de Complicados
+
+El saldo y cada monto se muestran en una columna de importes con signo, separador y total. El mensaje incluye el nombre del contacto y un bloque monoespaciado con tres acentos graves para conservar la alineación en WhatsApp. La vista previa oculta esos delimitadores; **Copiar mensaje** y **Abrir WhatsApp** usan exactamente el mismo texto completo. Una fila vacía o inválida impide compartir una cuenta parcial: completala o quitala. El resumen se genera localmente.
+
+Referencia de captura: [TakePicture (Android Developers)](https://developer.android.com/reference/androidx/activity/result/contract/ActivityResultContracts.TakePicture).

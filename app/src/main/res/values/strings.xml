@@ -1,6 +1,6 @@
 <resources>
  <string name="complicated">Complicados</string>
- <string name="complicated_help">Cargá el saldo anterior y los montos que querés sumar. El total se calcula solo.</string>
+ <string name="complicated_help">Cargá el saldo y agregá cada importe. Abajo vas a ver la cuenta completa, lista para WhatsApp.</string>
  <string name="previous_balance">Saldo anterior</string>
  <string name="addition_amount">Monto a sumar %1$d</string>
  <string name="add_amount">+ Agregar otro monto</string>

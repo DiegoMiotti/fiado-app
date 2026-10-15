@@ -30,6 +30,21 @@ class ReadingDeviceTest {
    assertEquals("", store.read().token)
   } finally { store.delete(); directory.delete() }
  }
+ @Test fun cameraCaptureCanBePreparedAndTemporaryFileIsRemoved() = runBlocking {
+  val uri = CameraPhotos.create(context)
+  val bitmap = Bitmap.createBitmap(1200, 800, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.WHITE) }
+  try {
+   context.contentResolver.openOutputStream(uri)!!.use { bitmap.compress(Bitmap.CompressFormat.JPEG, 95, it) }
+   val photo = AndroidPhotoPreparer(context).prepare(uri.toString())
+   val preview = requireNotNull(photo.preview)
+   assertEquals(1200, preview.width)
+   assertEquals(800, preview.height)
+   assertTrue(photo.jpeg.isNotEmpty())
+   assertTrue(photo.jpeg.size <= ReadingJson.MAX_IMAGE_BYTES)
+   preview.recycle()
+   assertTrue(runCatching { context.contentResolver.openInputStream(uri)?.close() }.isFailure)
+  } finally { bitmap.recycle(); CameraPhotos.discard(context, uri) }
+ }
  @Test fun photoRespectsExifOrientationAndSizeLimits() = runBlocking {
   val file = File(context.cacheDir, "fictitious-exif-test.jpg")
   val bitmap = Bitmap.createBitmap(3000, 1500, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.WHITE) }
@@ -45,6 +60,7 @@ class ReadingDeviceTest {
    assertEquals(2400, preview.height)
    assertTrue(prepared.jpeg.size <= ReadingJson.MAX_IMAGE_BYTES)
    preview.recycle()
+   assertTrue(file.exists()) // Gallery and other input files are never deleted.
   } finally { bitmap.recycle(); file.delete() }
  }
 }

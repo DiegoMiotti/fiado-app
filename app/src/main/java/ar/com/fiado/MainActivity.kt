@@ -14,6 +14,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.SystemBarStyle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -85,7 +87,7 @@ class MainActivity : ComponentActivity() {
   val previous by model.previous.collectAsStateWithLifecycle()
   val additions by model.additions.collectAsStateWithLifecycle()
   var clock by remember { mutableStateOf(Clock.systemDefaultZone()) }
-  fun currentMessage(): String? = if (complicated) MessageRules.detailedMessage(previous, additions, clock)
+  fun currentMessage(): String? = if (complicated) MessageRules.detailedMessage(previous, additions, clock, name)
    else MessageRules.message(amount, clock, name)
   val message = currentMessage()
   val scope = rememberCoroutineScope()
@@ -149,6 +151,7 @@ class MainActivity : ComponentActivity() {
       Text(stringResource(R.string.normalized_phone, normalized), style = MaterialTheme.typography.bodyMedium)
      }
     }
+    ReadingPanel(readings, model::applyReading, ::readPhone)
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
      modifier = Modifier.fillMaxWidth()) {
      Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
@@ -186,12 +189,19 @@ class MainActivity : ComponentActivity() {
       { Text(stringResource(R.string.amount_error)) }
      } else null)
     }
-    ReadingPanel(readings, model::applyReading, ::readPhone)
     ElevatedCard(colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
      elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp), modifier = Modifier.fillMaxWidth()) {
      Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
       Text(stringResource(R.string.preview), style = MaterialTheme.typography.labelMedium)
-      SelectionContainer { Text(message ?: stringResource(if (complicated) R.string.detailed_preview_empty else R.string.preview_empty), style = MaterialTheme.typography.titleLarge) }
+      SelectionContainer { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+       if (complicated && message != null) {
+        Text(message.substringBefore("```"), style = MaterialTheme.typography.bodyLarge)
+        Text(message.substringAfter("```\n").removeSuffix("\n```"),
+         style = MaterialTheme.typography.titleMedium, fontFamily = FontFamily.Monospace,
+         modifier = Modifier.horizontalScroll(rememberScrollState()))
+       } else Text(message ?: stringResource(if (complicated) R.string.detailed_preview_empty else R.string.preview_empty),
+        style = MaterialTheme.typography.titleLarge)
+      } }
      }
     }
     OutlinedButton(onClick = {

@@ -1,5 +1,17 @@
 # Validación y pendientes
 
+## Candidata unificada 0.3.0-rc1 — 15 de octubre de 2026
+
+Rama `codex/fiado-candidata-oficial`. [Alcance y genealogía de la integración](docs/VERSION_CANDIDATA.md).
+
+- Referencias remotas actualizadas con `git fetch origin --prune`. La última rama automática es `origin/codex/flujo-foto-whatsapp-automatico`, commit `9ecfbea`.
+- El rediseño se guardó en `3e912b1`; ya contiene la rama automática como antecesora. El merge confirmó `Already up to date`, sin conflictos. Se conserva el flujo por foto, corrección opcional, contacto y WhatsApp con la nueva interfaz.
+- Versión Android `0.3.0-rc1`, `versionCode = 4`, nombre **Fiado**, paquete `ar.com.fiado`. No se modificaron reglas de negocio ni se agregaron funcionalidades. `master` conserva su commit anterior.
+- `testDebugUnitTest lintDebug assembleDebug`: **BUILD SUCCESSFUL**. Las 47 pruebas unitarias siguen aprobadas (tarea sin cambios, resultados reutilizados); lint mantiene 0 errores y 42 advertencias existentes.
+- APK normal verificado por metadatos (`ar.com.fiado`, versión `0.3.0-rc1`, código 4) y conservado en `app/build/outputs/apk/candidate/Fiado-0.3.0-rc1.apk`. APK aislado generado: `app/build/outputs/apk/candidate/Fiado-0.3.0-rc1-pruebas.apk`.
+- El intento de repetir `connectedDebugAndroidTest` con la nueva versión se interrumpió **antes de ejecutar pruebas** con `No connected devices!`. ADB detectaba el Motorola al comenzar y luego quedó sin dispositivos. La instalación de la candidata en el teléfono queda pendiente de reconexión; no se intentó desinstalar ninguna aplicación.
+- Las 16 pruebas instrumentadas aprobadas de la sección siguiente corresponden al mismo código funcional y visual antes del cambio de número de versión. No equivalen a una ejecución de la candidata `0.3.0-rc1`.
+
 ## Rediseño visual — 15 de octubre de 2026
 
 Rama `codex/rediseno-visual-fiado`, creada desde `codex/flujo-foto-whatsapp-automatico`. [Propuesta, implementación y criterios de accesibilidad](docs/REDISENO_VISUAL.md).

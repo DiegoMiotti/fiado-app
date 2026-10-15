@@ -8,7 +8,7 @@ Sacá una foto de la cuenta, elegí el contacto y abrí WhatsApp con el detalle 
 
 [**📲 Descargar la versión manual publicada (0.2.1)**](https://github.com/DiegoMiotti/fiado-app/releases/download/v0.2.1/Fiado-0.2.1-debug.apk)
 
-Esta rama implementa la variante automática por foto. Su APK se genera desde el código; el enlace de descarga corresponde a la versión manual anterior. [Uso y compilación de la variante automática](docs/FLUJO_AUTOMATICO.md).
+Esta rama, `codex/fiado-candidata-oficial`, reúne el flujo automático de IA/OCR y el nuevo diseño Material 3 en **Fiado 0.3.0-rc1**. Es la base candidata para la próxima versión y futuras funcionalidades. Su APK se genera desde el código; el enlace de descarga corresponde a la versión manual anterior. [Versión candidata](docs/VERSION_CANDIDATA.md) · [Uso del flujo automático](docs/FLUJO_AUTOMATICO.md).
 
 **Android 15 o superior · Pesos enteros · Sin crear una cuenta**
 

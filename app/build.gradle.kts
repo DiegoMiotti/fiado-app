@@ -11,8 +11,8 @@ android {
   minSdk = 35
   targetSdk = 36
   testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-  versionCode = 3
-  versionName = "0.2.1"
+  versionCode = 4
+  versionName = "0.3.0-rc1"
  }
  buildFeatures { compose = true }
  // UTP removes target APKs even after an install failure. Connected tests must never target the personal app.

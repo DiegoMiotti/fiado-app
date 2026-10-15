@@ -36,6 +36,38 @@ class ReadingViewModelTest {
   assertEquals(0, calls)
   assertTrue(model.state.value.notice!!.contains("token"))
  }
+ @Test fun confirmingPhotoAutomaticallyReadsExactlyOnceAndCreatesDetailedDraft() = runTest(dispatcher) {
+  var calls = 0
+  val response = CompletableDeferred<Reading>()
+  val model = model(gateway = object : ReadingGateway {
+   override suspend fun read(connection: Connection, jpeg: ByteArray): Reading { calls++; return response.await() }
+  })
+  advanceUntilIdle()
+  model.choosePhoto("fixture", autoRead = true); runCurrent()
+  model.readPhoto(); model.choosePhoto("double-tap", autoRead = true); runCurrent()
+  assertEquals(1, calls)
+  response.complete(ReadingJson.parse(sampleReading)); advanceUntilIdle()
+  assertNull(model.state.value.automaticDraft())
+  model.contact(model.session, "Leonardo", "23456789")
+  val draft = model.state.value.automaticDraft()!!
+  assertTrue(draft.message.contains("```"))
+  assertTrue(draft.message.contains("- Pago"))
+  assertTrue(draft.message.contains("11.000"))
+  assertFalse(model.state.value.confirmed) // Final WhatsApp tap is the confirmation in this flow.
+ }
+ @Test fun automaticCaptureWithoutCredentialDoesNotConsultAndCanBeCancelled() = runTest(dispatcher) {
+  var calls = 0
+  val model = model(Store(Connection()), object : ReadingGateway {
+   override suspend fun read(connection: Connection, jpeg: ByteArray): Reading { calls++; error("Must not call") }
+  })
+  advanceUntilIdle(); model.choosePhoto("fixture", autoRead = true); advanceUntilIdle()
+  assertEquals(0, calls)
+  assertFalse(model.state.value.busy)
+  assertTrue(model.state.value.notice!!.contains("token"))
+  model.cancel()
+  assertNull(model.state.value.automaticDraft())
+  assertNull(model.state.value.photo)
+ }
  @Test fun duplicateRequestsAreIgnoredAndCancellationDiscardsResults() = runTest(dispatcher) {
   var calls = 0
   val response = CompletableDeferred<Reading>()

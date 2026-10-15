@@ -1,5 +1,22 @@
 # Validación y pendientes
 
+## Variante automática por foto — 15 de octubre de 2026
+
+Rama local `codex/flujo-foto-whatsapp-automatico`, basada en `e53c677`. [Flujo y archivos cambiados](docs/FLUJO_AUTOMATICO.md).
+
+| Comprobación | Resultado | Límite |
+|---|---|---|
+| Tests unitarios | 41 aprobados, 0 errores y 0 fallos: 8 de mensaje automático, 14 de MessageRules, 9 de reglas/JSON y 10 de ViewModel | Respuestas y fotografías simuladas; sin consultas facturables |
+| Compilación debug y APK de tests | `BUILD SUCCESSFUL` | No prueba Gemini con una foto real |
+| Tests en Motorola Edge 50 Fusion, Android 16 | 10 aprobados: 6 de pantalla automática, 1 de actividad/recreación y 3 de cifrado/fotos | Copia aislada `ar.com.fiado.ocrtest`; contactos, lecturas y apertura de WhatsApp simulados en los tests de flujo |
+| `lintDebug` | 0 errores y 42 advertencias en la validación final | Versiones de dependencias, recursos del modo manual que ya no usa esta pantalla y sugerencias KTX |
+
+La primera ejecución de dispositivo se interrumpió al retirar la copia desde el lanzador durante la prueba; la repetición completa con la copia aislada terminó correctamente. Los tests no envían mensajes, no capturan fotos personales ni llaman al backend real.
+
+La pantalla de esta rama no tiene entrada manual de montos ni selector de modo. Confirmar una foto inicia una sola consulta; el contacto produce un mensaje detallado con saldo opcional, cargos y pagos que se restan. El botón final confirma la cuenta visible y abre WhatsApp con el texto listo. Un importe sin leer, total nulo/inconsistente o no positivo, múltiples saldos anteriores o teléfono inválido bloquea la apertura y pide otra foto/contacto.
+
+Pendiente: prueba real de foto → Gemini → contacto → chat de WhatsApp. Para esa prueba se requiere el token ingresado directamente en la app. No se hizo una llamada real ni se consumió cuota durante esta validación.
+
 ## Cámara y suma de Complicados — 14 de octubre de 2026
 
 - `testDebugUnitTest`: 31 pruebas aprobadas, 0 fallos y 0 errores. Incluyen suma alineada, nombre del contacto, total superior al límite individual, rechazo de filas incompletas y conservación del texto en la URL de WhatsApp.

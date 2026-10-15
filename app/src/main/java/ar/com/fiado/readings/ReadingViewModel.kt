@@ -17,11 +17,15 @@ data class ReadingState(
  val url: String = DEFAULT_BACKEND, val hasToken: Boolean = false,
  val configBusy: Boolean = true, val busy: Boolean = false,
  val photo: PreparedPhoto? = null, val reading: Reading? = null, val selected: Int = 0,
+ val selectedExplicitly: Boolean = false,
  val contact: ReviewContact? = null, val complicated: Boolean = false, val confirmed: Boolean = false,
  val notice: String? = null, val settingsNotice: String? = null
 ) {
  val client get() = reading?.clients?.getOrNull(selected)
  val application get() = client?.let { ReviewRules.application(it, contact, complicated, confirmed) }
+ val automaticProblem get() = reading?.let { AutomaticMessageRules.problem(it, selected, selectedExplicitly) }
+ fun automaticDraft(clock: java.time.Clock = java.time.Clock.systemDefaultZone()): WhatsAppDraft? =
+  reading?.let { AutomaticMessageRules.draft(it, selected, selectedExplicitly, contact, clock) }
 }
 
 class ReadingViewModel(
@@ -78,14 +82,15 @@ class ReadingViewModel(
    }
   }
  }
- fun choosePhoto(uri: String) {
+ fun choosePhoto(uri: String, autoRead: Boolean = false) {
   if (state.value.busy) return
   cancel()
   mutable.value = state.value.copy(busy = true)
   work = viewModelScope.launch {
    try {
     val photo = photos.prepare(uri)
-    mutable.value = state.value.copy(photo = photo, busy = false)
+    mutable.value = state.value.copy(photo = photo, busy = autoRead)
+    if (autoRead) executeReading(photo)
    } catch (error: CancellationException) { throw error }
    catch (_: Exception) { mutable.value = state.value.copy(busy = false, notice = "No se pudo preparar la foto. Elegí una imagen JPEG, PNG o WebP válida.") }
   }
@@ -98,23 +103,30 @@ class ReadingViewModel(
    return
   }
   mutable.value = current.copy(busy = true, notice = null)
-  work = viewModelScope.launch {
+  work = viewModelScope.launch { executeReading(current.photo) }
+ }
+ private suspend fun executeReading(photo: PreparedPhoto) {
+  if (!state.value.hasToken || state.value.configBusy) {
+   mutable.value = state.value.copy(busy = false, notice = "Ingresá el token del teléfono en Conexión antes de consultar.")
+   return
+  }
+  mutable.value = state.value.copy(busy = true, notice = null)
    try {
     val connection = withContext(io) { storage.read() }
-    val reading = withTimeout(65_000) { gateway.read(connection, current.photo.jpeg) }
-    mutable.value = state.value.copy(reading = reading, busy = false)
+    val reading = withTimeout(65_000) { gateway.read(connection, photo.jpeg) }
+    mutable.value = state.value.copy(reading = reading, busy = false, selected = 0,
+     selectedExplicitly = reading.clients.size == 1, contact = null)
    } catch (_: TimeoutCancellationException) {
     mutable.value = state.value.copy(busy = false, notice = "Se agotó el tiempo de espera. La consulta puede haber consumido cuota; no se reintentó.")
    } catch (error: CancellationException) { throw error }
    catch (error: Exception) {
     mutable.value = state.value.copy(busy = false, notice = (error as? ReadingFailure)?.notice ?: "No se pudo completar la lectura. El cobro actual se conserva.")
    }
-  }
  }
  fun select(index: Int) {
   if (state.value.reading?.clients?.getOrNull(index) == null) return
   generation++
-  mutable.value = state.value.copy(selected = index, contact = null, confirmed = false, complicated = false)
+  mutable.value = state.value.copy(selected = index, selectedExplicitly = true, contact = null, confirmed = false, complicated = false)
  }
  private fun edit(transform: (ClientReading) -> ClientReading) {
   val current = state.value
@@ -148,7 +160,7 @@ class ReadingViewModel(
  fun cancel() {
   generation++
   work?.cancel()
-  mutable.value = state.value.copy(photo = null, reading = null, selected = 0, contact = null,
+  mutable.value = state.value.copy(photo = null, reading = null, selected = 0, selectedExplicitly = false, contact = null,
    busy = false, confirmed = false, complicated = false, notice = null)
  }
 }

@@ -1,5 +1,7 @@
 # Primera versión de lectura de papel
 
+Esta guía describe la interfaz anterior. En la rama `codex/flujo-foto-whatsapp-automatico` el flujo es exclusivamente por foto y genera siempre el detalle de Complicados: ver [guía de la variante automática](FLUJO_AUTOMATICO.md).
+
 La integración vive en `codex/mejora-deteccion-ocr-ia`. Conserva la carga manual y WhatsApp con confirmación del envío. No crea historial ni catálogo de clientes.
 
 ## Instalar y configurar

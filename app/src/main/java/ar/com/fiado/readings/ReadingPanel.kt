@@ -8,22 +8,27 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.SecureFlagPolicy
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ar.com.fiado.MessageRules
 import kotlinx.coroutines.Dispatchers
@@ -34,184 +39,174 @@ internal fun contactPickerIntent(): Intent =
  Intent(Intent.ACTION_PICK).setType(ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE)
 
 @Composable
-fun ReadingPanel(model: ReadingViewModel, apply: (AppliedReading) -> Unit,
+fun ReadingPanel(model: ReadingViewModel, openWhatsApp: (String, String) -> Boolean,
  readContact: (Uri) -> Pair<String, String>?) {
  val state by model.state.collectAsStateWithLifecycle()
  var settings by remember { mutableStateOf(false) }
- var pickerNotice by remember { mutableStateOf<String?>(null) }
- var contactSession by remember { mutableIntStateOf(0) }
+ var notice by remember { mutableStateOf<String?>(null) }
+ var contactSession by rememberSaveable { mutableIntStateOf(0) }
+ // A cancelled UI-scope lookup after rotation must not leave a restored "pending" flag stuck forever.
+ var contactPending by remember { mutableStateOf(false) }
+ var cameraUri by rememberSaveable { mutableStateOf<String?>(null) }
  val scope = rememberCoroutineScope()
  val context = LocalContext.current
- var cameraUri by rememberSaveable { mutableStateOf<String?>(null) }
  val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { saved ->
-  val uri = cameraUri?.let(Uri::parse)
+  val uri = cameraUri?.toUri()
   cameraUri = null
-  if (saved && uri != null) {
-   pickerNotice = null
-   model.choosePhoto(uri.toString())
-  } else {
-   uri?.let { CameraPhotos.discard(context, it) }
-  }
+  if (saved && uri != null) { notice = null; model.choosePhoto(uri.toString(), autoRead = true) }
+  else uri?.let { CameraPhotos.discard(context, it) }
  }
  val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-  uri?.let { pickerNotice = null; model.choosePhoto(it.toString()) }
+  uri?.let { notice = null; model.choosePhoto(it.toString(), autoRead = true) }
  }
- val contactPicker = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-  if (result.resultCode == android.app.Activity.RESULT_OK) {
+ val contacts = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+  if (result.resultCode != android.app.Activity.RESULT_OK) contactPending = false
+  else {
    val session = contactSession
    scope.launch {
-    val contact = withContext(Dispatchers.IO) { result.data?.data?.let(readContact) }
-    if (contact == null) pickerNotice = "No se pudo leer el contacto."
-    else model.contact(session, contact.first, contact.second)
+    try {
+     val contact = withContext(Dispatchers.IO) { result.data?.data?.let(readContact) }
+     if (contact == null) notice = "No se pudo leer el contacto. Elegí otro contacto."
+     else { model.contact(session, contact.first, contact.second); notice = null }
+    } finally { contactPending = false }
    }
   }
  }
- Card(modifier = Modifier.fillMaxWidth()) {
-  Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-   Text("Leer papel con OCR + IA", style = MaterialTheme.typography.titleMedium)
-   Text("Sacá una foto del papel o elegí una de tu galería. Después revisá los movimientos.")
-   FilledTonalButton(onClick = {
+ BackHandler(enabled = state.photo != null || state.busy) { model.cancel(); notice = null }
+ Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
+  Column(Modifier.fillMaxSize().padding(padding).imePadding().verticalScroll(rememberScrollState())
+   .padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+   Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+    modifier = Modifier.fillMaxWidth()) {
+    Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+     Text("Fiado", style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Bold)
+     Text("Foto → contacto → WhatsApp", style = MaterialTheme.typography.titleMedium)
+     Text("La cuenta se arma automáticamente, siempre con el detalle de Complicados.")
+    }
+   }
+   Text("Al confirmar la foto se enviará a tu backend y al proveedor de IA. Cada lectura puede consumir cuota y saldo.",
+    style = MaterialTheme.typography.bodySmall)
+   val captureEnabled = state.hasToken && !state.configBusy && !state.busy && cameraUri == null && !contactPending
+   Button(onClick = {
     try {
      val uri = CameraPhotos.create(context)
      cameraUri = uri.toString()
      camera.launch(uri)
     } catch (_: Exception) {
-     cameraUri?.let { CameraPhotos.discard(context, Uri.parse(it)) }
+     cameraUri?.let { CameraPhotos.discard(context, it.toUri()) }
      cameraUri = null
-     pickerNotice = "No se pudo abrir la cámara. Podés elegir una foto de la galería."
+     notice = "No se pudo abrir la cámara. Podés elegir una foto guardada."
     }
-   }, enabled = !state.busy && !state.configBusy && cameraUri == null,
-    modifier = Modifier.fillMaxWidth()) { Text("Sacar foto") }
-   FilledTonalButton(onClick = {
+   }, enabled = captureEnabled, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+    Text(if (state.photo == null) "Sacar foto" else "Sacar otra foto")
+   }
+   OutlinedButton(onClick = {
     try { photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
-    catch (_: RuntimeException) { pickerNotice = "No se pudo abrir el selector de fotos." }
-   }, enabled = !state.busy && !state.configBusy, modifier = Modifier.fillMaxWidth()) { Text("Elegir foto") }
-   TextButton(onClick = { settings = true }, enabled = !state.busy) { Text("Conexión del backend") }
-   if (state.photo == null && !state.busy) state.notice?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-   if (!state.hasToken) Text("Falta configurar el token del teléfono.", style = MaterialTheme.typography.bodySmall)
-   pickerNotice?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+    catch (_: RuntimeException) { notice = "No se pudo abrir el selector de fotos." }
+   }, enabled = captureEnabled, modifier = Modifier.fillMaxWidth()) { Text("Elegir foto guardada") }
+   if (!state.hasToken && !state.configBusy) WarningText("Configurá la conexión antes de sacar la foto.")
+   TextButton(onClick = { settings = true }, enabled = !state.busy && !contactPending) { Text("Conexión del backend") }
+   state.photo?.preview?.let {
+    Image(it.asImageBitmap(), "Foto de la cuenta", modifier = Modifier.fillMaxWidth().heightIn(max = 260.dp))
+   }
+   if (state.busy) {
+    CircularProgressIndicator()
+    Text(if (state.photo == null) "Preparando foto…" else "Leyendo la cuenta y armando el mensaje…")
+   }
+   state.notice?.let { WarningText(it) }
+   notice?.let { WarningText(it) }
+   if (state.photo != null && state.reading == null && !state.busy && state.notice != null)
+    OutlinedButton(onClick = model::readPhoto, enabled = state.hasToken && !state.configBusy,
+     modifier = Modifier.fillMaxWidth()) { Text("Reintentar lectura") }
+   state.reading?.let { reading ->
+    if (reading.clients.size > 1) {
+     Text("La foto tiene varias cuentas. Elegí una:", style = MaterialTheme.typography.titleMedium)
+     reading.clients.forEachIndexed { index, client ->
+      OutlinedButton(onClick = { model.select(index); notice = null }, enabled = !contactPending,
+       modifier = Modifier.fillMaxWidth()) {
+       Text("${if (state.selectedExplicitly && state.selected == index) "✓ " else ""}${index + 1}. ${client.name.ifBlank { "Sin nombre" }}")
+      }
+     }
+    }
+    if (state.selectedExplicitly) state.client?.let { client ->
+     Text("Cuenta en el papel: ${client.name.ifBlank { "sin nombre" }}", style = MaterialTheme.typography.titleMedium)
+     ReadingSummary(client, reading.warnings)
+    }
+    val problem = state.automaticProblem
+    if (problem != null) WarningText(problem)
+    else {
+     FilledTonalButton(onClick = {
+      contactSession = model.session
+      contactPending = true
+      try { contacts.launch(contactPickerIntent()) }
+      catch (_: RuntimeException) { contactPending = false; notice = "No se pudo abrir el selector de contactos." }
+     }, enabled = !contactPending, modifier = Modifier.fillMaxWidth()) {
+      Text(if (state.contact == null) "Elegir contacto" else "Cambiar contacto")
+     }
+     if (contactPending) Text("Esperando contacto…")
+    }
+   }
+   state.contact?.let { contact ->
+    Text("Contacto: ${contact.name.ifBlank { "sin nombre" }}")
+    val phone = MessageRules.internationalPhone(contact.phone)
+    if (phone == null) WarningText("El teléfono no es válido para WhatsApp. Elegí otro contacto con celular del área 11.")
+    else Text("WhatsApp: +$phone")
+   }
+   val draft = state.automaticDraft()
+   if (draft != null) MessagePreview(draft.message)
+   Button(onClick = {
+    // Rebuild at the tap so the greeting follows the actual time, including after returning from WhatsApp.
+    model.state.value.automaticDraft()?.let { current ->
+     val opened = try { openWhatsApp(current.phone, current.message) } catch (_: RuntimeException) { false }
+     notice = if (opened) null else "No se pudo abrir WhatsApp. La cuenta y el contacto siguen disponibles para reintentar."
+    }
+   }, enabled = draft != null && !state.busy && !contactPending,
+    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) { Text("Confirmar y abrir WhatsApp") }
+   Text("Comprobá la foto, el detalle y el contacto. Al continuar confirmás esta cuenta. El envío lo confirmás en WhatsApp.",
+    style = MaterialTheme.typography.bodySmall)
+   if (state.photo != null || state.busy) TextButton(onClick = { model.cancel(); notice = null },
+    modifier = Modifier.fillMaxWidth()) { Text("Cancelar cuenta") }
   }
  }
- if (settings) ConnectionDialog(state, model, onClose = { settings = false })
- if (state.photo != null || state.busy) {
-  Dialog(onDismissRequest = model::cancel, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-   BackHandler { model.cancel() }
-   Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-    Column(Modifier.fillMaxSize().safeDrawingPadding().imePadding().verticalScroll(rememberScrollState()).padding(20.dp),
-     verticalArrangement = Arrangement.spacedBy(12.dp)) {
-     Text("Revisar lectura", style = MaterialTheme.typography.headlineSmall)
-     Text("El cobro actual se conserva hasta que confirmes. Cancelar una consulta enviada puede consumir cuota.")
-     OutlinedButton(onClick = model::cancel, modifier = Modifier.fillMaxWidth()) { Text("Cancelar lectura") }
-     state.photo?.preview?.let {
-      Image(it.asImageBitmap(), contentDescription = "Foto manuscrita elegida",
-       modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp))
-      Text("Vista reducida de la foto elegida. Comprobá que los números se lean bien.", style = MaterialTheme.typography.bodySmall)
-     }
-     if (state.busy) {
-      CircularProgressIndicator()
-      Text(if (state.photo == null) "Preparando foto…" else "Consultando al backend… Puede tardar alrededor de un minuto.")
-     }
-     state.notice?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-     if (!state.busy && state.reading == null && state.photo != null) {
-      Text("La foto se enviará a ${state.url} y al proveedor de IA. Cada consulta puede consumir cuota y saldo.")
-      Button(onClick = model::readPhoto, enabled = state.hasToken && !state.configBusy,
-       modifier = Modifier.fillMaxWidth()) { Text("Enviar foto para lectura") }
-      if (!state.hasToken) Text("Cancelá y configurá el token en Conexión del backend.")
-     }
-     state.reading?.let { reading ->
-      reading.warnings.forEach { WarningText(it) }
-      if (reading.clients.size > 1) {
-       Text("Elegí el bloque que querés aplicar:")
-       reading.clients.forEachIndexed { index, client ->
-        OutlinedButton(onClick = { model.select(index) }, modifier = Modifier.fillMaxWidth()) {
-         Text("${if (state.selected == index) "✓ " else ""}${index + 1}. ${client.name.ifBlank { "Sin nombre" }}")
-        }
-       }
-      }
-      state.client?.let { client ->
-       OutlinedTextField(client.name, model::name, label = { Text("Nombre para el mensaje") },
-        modifier = Modifier.fillMaxWidth(), singleLine = true, isError = client.name.isBlank())
-       if (client.needsReview) WarningText("La IA marcó dudas en este cliente. Revisá el bloque completo.")
-       client.warnings.forEach { WarningText(it) }
-       Text("Coincidencia: ${when (client.match) { "ambiguo" -> "ambigua"; "coincidencia_exacta" -> "exacta"; else -> "sin coincidencia" }}")
-       if (client.candidates.isNotEmpty()) Text("Candidatos: ${client.candidates.joinToString { it.name }}. Confirmá el contacto localmente.")
-       client.movements.forEachIndexed { index, movement ->
-        Card(modifier = Modifier.fillMaxWidth()) {
-         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-          Row {
-           Checkbox(movement.included, { included -> model.movement(index) { it.copy(included = included) } })
-           Text("Incluir movimiento ${index + 1}", modifier = Modifier.padding(top = 12.dp))
-          }
-          Text(movement.reference ?: "Sin referencia")
-          movement.detail?.let { Text(it) }
-          if (movement.needsReview) WarningText("La IA marcó este movimiento para revisión.")
-          MovementType.entries.forEach { type ->
-           Row {
-            RadioButton(movement.type == type, onClick = { model.movement(index) { it.copy(type = type) } }, enabled = movement.included)
-            Text(type.label, modifier = Modifier.padding(top = 12.dp))
-           }
-          }
-          OutlinedTextField(movement.amount,
-           { value -> model.movement(index) { it.copy(amount = value) } }, label = { Text("Importe en pesos enteros") },
-           prefix = { Text("$") }, modifier = Modifier.fillMaxWidth(), singleLine = true,
-           keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), enabled = movement.included,
-           isError = movement.included && MessageRules.amount(movement.amount) == null,
-           supportingText = { Text("De 1 a 999.999.999. Resolvé importes vacíos o excluí la fila.") })
-         }
-        }
-       }
-       val total = ReviewRules.total(client)
-       Text("Total local: ${total?.toPlainString()?.let { "$$it" } ?: "pendiente de corregir"}", style = MaterialTheme.typography.titleLarge)
-       Text("Saldo anterior + cargos − pagos. Excluí las filas que sean totales duplicados.")
-       if (ReviewRules.multipleBalances(client)) WarningText("Hay varios saldos anteriores. Comprobá si alguno está duplicado y excluilo si corresponde.")
-       if (total != null && client.serverTotal != null && total.compareTo(client.serverTotal) != 0)
-        WarningText("El total local difiere del informado por el backend (${client.serverTotal.toPlainString()}).")
-       if (total != null && total.signum() <= 0) WarningText("El cobro actual solo admite totales positivos. Esta lectura no se puede aplicar.")
-       val canComplicated = ReviewRules.canUseComplicated(client)
-       Row {
-        Checkbox(state.complicated, model::complicated, enabled = canComplicated)
-        Text("Aplicar en Complicados", modifier = Modifier.padding(top = 12.dp))
-       }
-       Text(if (canComplicated) "Podés conservar un saldo anterior y los cargos por separado."
-        else "Se aplicará el total en modo simple. Los pagos se restan del total.")
-       if (!state.complicated && total != null && total > java.math.BigDecimal("999999999"))
-        WarningText("El total supera el máximo del modo simple. Complicados solo está disponible con un saldo y cargos sin pagos.")
-       FilledTonalButton(onClick = {
-        contactSession = model.session
-        try { contactPicker.launch(contactPickerIntent()) }
-        catch (_: RuntimeException) { pickerNotice = "No se pudo abrir el selector de contactos." }
-       }, modifier = Modifier.fillMaxWidth()) { Text("Elegir contacto para esta lectura") }
-       pickerNotice?.let { WarningText(it) }
-       state.contact?.let { contact ->
-        Text("Contacto elegido: ${contact.name} · ${contact.originalPhone}")
-        OutlinedTextField(contact.phone, model::phone, label = { Text("Teléfono del contacto") },
-         modifier = Modifier.fillMaxWidth(), singleLine = true,
-         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-         isError = MessageRules.internationalPhone(contact.phone) == null)
-        MessageRules.internationalPhone(contact.phone)?.let { Text("WhatsApp: +$it") }
-       }
-       Row {
-        Checkbox(state.confirmed, model::confirm)
-        Text("Revisé la foto, el nombre, todos los movimientos y el contacto.", modifier = Modifier.padding(top = 12.dp))
-       }
-       Button(onClick = { model.apply(apply) }, enabled = state.application != null,
-        modifier = Modifier.fillMaxWidth()) { Text("Confirmar y reemplazar cobro") }
-       Text("Solo se aplica el bloque elegido. El envío de WhatsApp sigue siendo manual.")
-      }
-     }
+ if (settings) ConnectionDialog(state, model) { settings = false }
+}
+
+@Composable private fun ReadingSummary(client: ClientReading, globalWarnings: List<String>) {
+ Card(modifier = Modifier.fillMaxWidth()) {
+  Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+   client.movements.filter { it.included }.forEach { movement ->
+    Text("${movement.type.label}: $${movement.amount.ifBlank { "importe sin leer" }}")
+    movement.reference?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+    movement.detail?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+    if (movement.needsReview) WarningText("Compará este movimiento con la foto antes de confirmar.")
+   }
+   if (client.needsReview) Text("Revisá esta cuenta con la foto antes de abrir WhatsApp.")
+   (globalWarnings + client.warnings).distinct().forEach { WarningText(it) }
+  }
+ }
+}
+
+@Composable private fun MessagePreview(message: String) {
+ ElevatedCard(colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+  modifier = Modifier.fillMaxWidth()) {
+  Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+   Text("Mensaje listo", style = MaterialTheme.typography.labelLarge)
+   SelectionContainer {
+    Column {
+     Text(message.substringBefore("```"), style = MaterialTheme.typography.bodyLarge)
+     Text(message.substringAfter("```\n").removeSuffix("\n```"), fontFamily = FontFamily.Monospace,
+      modifier = Modifier.horizontalScroll(rememberScrollState()))
     }
    }
   }
  }
 }
 
-@Composable private fun WarningText(text: String) {
- Text(text, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
-}
+@Composable private fun WarningText(text: String) { Text(text, color = MaterialTheme.colorScheme.error) }
 
 @Composable private fun ConnectionDialog(state: ReadingState, model: ReadingViewModel, onClose: () -> Unit) {
  var url by remember(state.url) { mutableStateOf(state.url) }
- // Deliberately not rememberSaveable: credentials never enter saved state.
+ // Credentials deliberately never enter saved instance state.
  var token by remember { mutableStateOf("") }
  Dialog(onDismissRequest = onClose, properties = DialogProperties(securePolicy = SecureFlagPolicy.SecureOn)) {
   Surface(shape = MaterialTheme.shapes.large) {

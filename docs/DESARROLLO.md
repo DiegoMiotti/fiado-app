@@ -1,5 +1,7 @@
 # Desarrollo de Fiado
 
+La rama `codex/flujo-foto-whatsapp-automatico` usa la [interfaz automática por foto](FLUJO_AUTOMATICO.md). La carga manual descrita en las secciones históricas corresponde a la rama anterior.
+
 ## Preparar el entorno
 
 - JDK 17.

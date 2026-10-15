@@ -1,47 +1,24 @@
 package ar.com.fiado
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Intent
 import android.net.Uri
-import androidx.core.net.toUri
 import android.os.Bundle
 import android.provider.ContactsContract
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.SystemBarStyle
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import ar.com.fiado.readings.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.time.Clock
 
 class MainActivity : ComponentActivity() {
  override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,170 +37,21 @@ class MainActivity : ComponentActivity() {
      background = Color(0xFFF7F3EC), surface = Color(0xFFFFFBF5),
      surfaceVariant = Color(0xFFE6ECE7), outline = Color(0xFF78837C)
     ),
-    shapes = Shapes(
-     small = RoundedCornerShape(12.dp),
-     medium = RoundedCornerShape(20.dp),
-     large = RoundedCornerShape(28.dp)
-    )
-   ) { FiadoScreen() }
+    shapes = Shapes(small = RoundedCornerShape(12.dp), medium = RoundedCornerShape(20.dp), large = RoundedCornerShape(28.dp))
+   ) { PhotoScreen() }
   }
  }
 
- @Composable
- private fun FiadoScreen(model: FiadoViewModel = viewModel()) {
-  val readingFactory = remember {
+ @Composable private fun PhotoScreen() {
+  val factory = remember {
    object : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T =
      ReadingViewModel(KeystoreConnectionStore(applicationContext), HttpReadingGateway(), AndroidPhotoPreparer(applicationContext)) as T
    }
   }
-  val readings: ReadingViewModel = viewModel(factory = readingFactory)
-  val amount by model.amount.collectAsStateWithLifecycle()
-  val name by model.name.collectAsStateWithLifecycle()
-  val originalPhone by model.originalPhone.collectAsStateWithLifecycle()
-  val phone by model.phone.collectAsStateWithLifecycle()
-  val complicated by model.complicated.collectAsStateWithLifecycle()
-  val previous by model.previous.collectAsStateWithLifecycle()
-  val additions by model.additions.collectAsStateWithLifecycle()
-  var clock by remember { mutableStateOf(Clock.systemDefaultZone()) }
-  fun currentMessage(): String? = if (complicated) MessageRules.detailedMessage(previous, additions, clock, name)
-   else MessageRules.message(amount, clock, name)
-  val message = currentMessage()
-  val scope = rememberCoroutineScope()
-  val snackbar = remember { SnackbarHostState() }
-  val lifecycle = LocalLifecycleOwner.current.lifecycle
-  fun notice(resource: Int) { scope.launch { snackbar.showSnackbar(getString(resource)) } }
-  LaunchedEffect(lifecycle) {
-   lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-    while (true) {
-     clock = Clock.fixed(java.time.Instant.now(), java.time.ZoneId.systemDefault())
-     delay(1000)
-    }
-   }
-  }
-  val picker = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-   if (result.resultCode == RESULT_OK) {
-    val uri = result.data?.data
-    scope.launch {
-     val selected = withContext(Dispatchers.IO) { uri?.let { readPhone(it) } }
-     if (selected == null) notice(R.string.contact_error)
-     else model.contact(selected.first, selected.second)
-    }
-   }
-  }
-  Scaffold(
-   containerColor = MaterialTheme.colorScheme.background,
-   snackbarHost = { SnackbarHost(snackbar) }
-  ) { padding ->
-   Column(Modifier.fillMaxSize().padding(padding).imePadding().verticalScroll(rememberScrollState())
-    .padding(horizontal = 20.dp, vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-    Card(
-     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-     modifier = Modifier.fillMaxWidth()
-    ) {
-     Column(Modifier.padding(horizontal = 24.dp, vertical = 22.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-      Text(stringResource(R.string.today), style = MaterialTheme.typography.labelLarge,
-       color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
-      Text(stringResource(R.string.app_name), style = MaterialTheme.typography.displayMedium,
-       color = MaterialTheme.colorScheme.onSecondaryContainer, fontWeight = FontWeight.Bold)
-     }
-    }
-    Text(name.ifEmpty { stringResource(R.string.no_contact) }, style = MaterialTheme.typography.titleMedium)
-    FilledTonalButton(onClick = {
-     try {
-      picker.launch(contactPickerIntent())
-     } catch (_: android.content.ActivityNotFoundException) { notice(R.string.picker_error) }
-       catch (_: SecurityException) { notice(R.string.picker_error) }
-    }, modifier = Modifier.fillMaxWidth()) {
-     Text(stringResource(if (originalPhone.isEmpty()) R.string.choose_contact else R.string.change_contact))
-    }
-    if (originalPhone.isNotEmpty()) {
-     Text(stringResource(R.string.original_phone, originalPhone), style = MaterialTheme.typography.bodySmall)
-     OutlinedTextField(value = phone, onValueChange = model::phone, modifier = Modifier.fillMaxWidth(),
-      label = { Text(stringResource(R.string.phone)) }, singleLine = true,
-      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-      isError = MessageRules.internationalPhone(phone) == null,
-      supportingText = { Text(stringResource(if (MessageRules.internationalPhone(phone) == null) R.string.phone_error else R.string.phone_help)) })
-    }
-    if (originalPhone.isNotEmpty()) {
-     MessageRules.internationalPhone(phone)?.let { normalized ->
-      Text(stringResource(R.string.normalized_phone, normalized), style = MaterialTheme.typography.bodyMedium)
-     }
-    }
-    ReadingPanel(readings, model::applyReading, ::readPhone)
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-     modifier = Modifier.fillMaxWidth()) {
-     Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
-      horizontalArrangement = Arrangement.SpaceBetween,
-      verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-      Text(stringResource(R.string.complicated), style = MaterialTheme.typography.titleMedium,
-       fontWeight = FontWeight.SemiBold)
-      Switch(checked = complicated, onCheckedChange = model::complicated)
-     }
-    }
-    if (complicated) {
-     Text(stringResource(R.string.complicated_help))
-     OutlinedTextField(value = previous, onValueChange = { model.previous(MessageRules.formatInput(it)) },
-      modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.previous_balance)) },
-      prefix = { Text("$") }, singleLine = true,
-      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
-     additions.forEachIndexed { index, value ->
-      OutlinedTextField(value = value, onValueChange = { model.addition(index, MessageRules.formatInput(it)) },
-       modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.addition_amount, index + 1)) },
-       prefix = { Text("+ $") }, singleLine = true,
-       keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-       trailingIcon = if (additions.size > 1) { {
-        TextButton(onClick = { model.removeAmount(index) }) { Text(stringResource(R.string.remove_amount)) }
-       } } else null)
-     }
-     OutlinedButton(onClick = model::addAmount, modifier = Modifier.fillMaxWidth()) {
-      Text(stringResource(R.string.add_amount))
-     }
-    } else {
-     OutlinedTextField(value = amount, onValueChange = { model.amount(MessageRules.formatInput(it)) }, modifier = Modifier.fillMaxWidth(),
-      label = { Text(stringResource(R.string.amount)) }, prefix = { Text("$") }, singleLine = true,
-      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-     isError = amount.isNotEmpty() && message == null,
-     supportingText = if (amount.isNotEmpty() && message == null) {
-      { Text(stringResource(R.string.amount_error)) }
-     } else null)
-    }
-    ElevatedCard(colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-     elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp), modifier = Modifier.fillMaxWidth()) {
-     Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-      Text(stringResource(R.string.preview), style = MaterialTheme.typography.labelMedium)
-      SelectionContainer { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-       if (complicated && message != null) {
-        Text(message.substringBefore("```"), style = MaterialTheme.typography.bodyLarge)
-        Text(message.substringAfter("```\n").removeSuffix("\n```"),
-         style = MaterialTheme.typography.titleMedium, fontFamily = FontFamily.Monospace,
-         modifier = Modifier.horizontalScroll(rememberScrollState()))
-       } else Text(message ?: stringResource(if (complicated) R.string.detailed_preview_empty else R.string.preview_empty),
-        style = MaterialTheme.typography.titleLarge)
-      } }
-     }
-    }
-    OutlinedButton(onClick = {
-     clock = Clock.fixed(java.time.Instant.now(), java.time.ZoneId.systemDefault())
-     currentMessage()?.let { text ->
-      try { getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText(getString(R.string.app_name), text)) }
-      catch (_: RuntimeException) { notice(R.string.copy_error) }
-     }
-    }, enabled = message != null, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.copy)) }
-    Button(onClick = {
-     clock = Clock.fixed(java.time.Instant.now(), java.time.ZoneId.systemDefault())
-     currentMessage()?.let { text ->
-      if (!openWhatsApp(phone, text)) notice(R.string.whatsapp_error)
-     }
-    }, enabled = message != null && originalPhone.isNotEmpty() && MessageRules.internationalPhone(phone) != null,
-     modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
-     Text(stringResource(R.string.open_whatsapp), fontWeight = FontWeight.Bold)
-    }
-    Text(stringResource(R.string.send_help), style = MaterialTheme.typography.bodySmall)
-    TextButton(onClick = model::clear, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.clear)) }
-   }
-  }
+  val model: ReadingViewModel = viewModel(factory = factory)
+  ReadingPanel(model, ::openWhatsApp, ::readPhone)
  }
 
  private fun readPhone(uri: Uri): Pair<String, String>? = try {

@@ -11,13 +11,23 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 class ReadingFailure(val notice: String) : Exception(notice)
-interface ReadingGateway { suspend fun read(connection: Connection, jpeg: ByteArray): Reading }
+interface ReadingGateway {
+ suspend fun read(connection: Connection, jpeg: ByteArray): Reading
+ suspend fun readAudio(connection: Connection, audio: ByteArray): Reading =
+  throw ReadingFailure("Este servicio todavía no admite audio.")
+}
 
 class HttpReadingGateway : ReadingGateway {
  override suspend fun read(connection: Connection, jpeg: ByteArray): Reading = withContext(Dispatchers.IO) {
-  if (connection.token.isBlank()) throw ReadingFailure("Ingresá el token del teléfono en Conexión.")
   if (jpeg.size > ReadingJson.MAX_IMAGE_BYTES) throw ReadingFailure("La foto supera el tamaño permitido.")
-  val body = ReadingJson.request(Base64.encodeToString(jpeg, Base64.NO_WRAP))
+  send(connection, ReadingJson.request(Base64.encodeToString(jpeg, Base64.NO_WRAP)))
+ }
+ override suspend fun readAudio(connection: Connection, audio: ByteArray): Reading = withContext(Dispatchers.IO) {
+  if (audio.isEmpty() || audio.size > ReadingJson.MAX_AUDIO_BYTES) throw ReadingFailure("El audio está vacío o supera el tamaño permitido.")
+  send(connection, ReadingJson.audioRequest(Base64.encodeToString(audio, Base64.NO_WRAP)))
+ }
+ private suspend fun send(connection: Connection, body: ByteArray): Reading = withContext(Dispatchers.IO) {
+  if (connection.token.isBlank()) throw ReadingFailure("Ingresá el token del teléfono en Conexión.")
   val http = URL(backendUrl(connection.url) + "/api/v1/readings").openConnection() as HttpURLConnection
   suspendCancellableCoroutine { continuation ->
    continuation.invokeOnCancellation { http.disconnect() }

@@ -7,6 +7,12 @@ import java.math.BigDecimal
 object ReadingJson {
  const val MAX_IMAGE_BYTES = 2_800_000
  const val MAX_BODY_BYTES = 4_000_000
+ const val MAX_AUDIO_BYTES = 2_000_000
+ fun audioRequest(base64: String): ByteArray = JSONObject()
+  .put("audio", JSONObject().put("mimeType", "audio/mp4").put("base64", base64))
+  .put("clients", JSONArray()).toString().toByteArray(Charsets.UTF_8).also {
+   require(it.size <= MAX_BODY_BYTES) { "El audio supera el tamaño permitido." }
+  }
  fun request(base64: String): ByteArray = JSONObject()
   .put("image", JSONObject().put("mimeType", "image/jpeg").put("base64", base64))
   .put("clients", JSONArray()).toString().toByteArray(Charsets.UTF_8).also {
@@ -56,10 +62,12 @@ object ReadingJson {
    "AI_AUTH_FAILED" -> "El backend tiene una clave del proveedor rechazada. Revisá Vercel."
    "AI_INSUFFICIENT_BALANCE" -> "El proveedor de IA no tiene saldo disponible."
    "AI_REQUEST_REJECTED" -> "El proveedor rechazó el modelo o los parámetros del backend."
+   "AUDIO_NOT_CONFIGURED" -> "Configurá el modelo de audio y su clave en el backend antes de enviar grabaciones."
+   "AUDIO_TOO_LARGE" -> "El audio es demasiado grande. Grabá una cuenta más corta."
    else -> when (status) {
     400 -> "El backend rechazó la solicitud."
     401 -> "El token del teléfono no es válido. Reemplazalo en Conexión."
-    413 -> "La imagen es demasiado grande. Elegí una foto más pequeña."
+    413 -> "El archivo es demasiado grande. Usá una foto o grabación más pequeña."
     429 -> "Se alcanzó el límite de consultas."
     502, 503 -> "El backend, el proveedor o Redis no están disponibles."
     504 -> "La lectura agotó el tiempo de espera. La consulta puede haber consumido cuota."

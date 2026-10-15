@@ -58,7 +58,11 @@ object AutomaticMessageRules {
      MovementType.CARGO -> "+"
      MovementType.PAGO -> "- Pago"
     }
-    append(row(label, requireNotNull(MessageRules.amount(movement.amount)))).append('\n')
+    append(row(label, requireNotNull(MessageRules.amount(movement.amount))))
+    movement.detail?.replace(Regex("[\\s`]+"), " ")?.trim()?.takeIf { it.isNotEmpty() }?.let {
+     append("  ").append(it)
+    }
+    append('\n')
    }
    append("-".repeat(9 + width)).append('\n')
    append(row("TOTAL", total)).append("\n```")

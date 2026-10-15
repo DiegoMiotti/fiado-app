@@ -19,6 +19,7 @@ data class ReadingState(
  val url: String = DEFAULT_BACKEND, val hasToken: Boolean = false,
  val configBusy: Boolean = true, val busy: Boolean = false,
  val photo: PreparedPhoto? = null, val reading: Reading? = null, val selected: Int = 0,
+ val audio: ByteArray? = null,
  val selectedExplicitly: Boolean = false,
  val correction: ReadingCorrection? = null, val correctedClients: Set<Int> = emptySet(),
  val contact: ReviewContact? = null, val complicated: Boolean = false, val confirmed: Boolean = false,
@@ -108,6 +109,34 @@ class ReadingViewModel(
   mutable.value = current.copy(busy = true, notice = null)
   work = viewModelScope.launch { executeReading(current.photo) }
  }
+ fun readAudio(audio: ByteArray? = state.value.audio) {
+  val current = state.value
+  if (current.busy || current.configBusy || audio == null) return
+  if (!current.hasToken) {
+   mutable.value = current.copy(notice = "Ingresá el token del teléfono en Conexión antes de consultar.")
+   return
+  }
+  if (audio.isEmpty() || audio.size > ReadingJson.MAX_AUDIO_BYTES) {
+   mutable.value = current.copy(notice = "El audio está vacío o supera el tamaño permitido.")
+   return
+  }
+  generation++
+  mutable.value = current.copy(audio = audio.copyOf(), busy = true, notice = null)
+  work = viewModelScope.launch {
+   try {
+    val connection = withContext(io) { storage.read() }
+    val reading = withTimeout(65_000) { gateway.readAudio(connection, audio) }
+    generation++ // A contact lookup started against an older snapshot cannot attach to this account.
+    mutable.value = state.value.copy(reading = reading, busy = false, selected = 0,
+     selectedExplicitly = reading.clients.size == 1, contact = null, correctedClients = emptySet(), correction = null)
+   } catch (_: TimeoutCancellationException) {
+    mutable.value = state.value.copy(busy = false, notice = "Se agotó el tiempo de espera. La consulta puede haber consumido cuota; no se reintentó.")
+   } catch (error: CancellationException) { throw error }
+   catch (error: Exception) {
+    mutable.value = state.value.copy(busy = false, notice = (error as? ReadingFailure)?.notice ?: "No se pudo leer el audio. El cobro actual se conserva.")
+   }
+  }
+ }
  private suspend fun executeReading(photo: PreparedPhoto) {
   if (!state.value.hasToken || state.value.configBusy) {
    mutable.value = state.value.copy(busy = false, notice = "Ingresá el token del teléfono en Conexión antes de consultar.")
@@ -134,7 +163,7 @@ class ReadingViewModel(
  }
  fun beginCorrection() {
   val current = state.value
-  if (current.busy || current.photo == null || current.correction != null) return
+  if (current.busy || (current.photo == null && current.audio == null && current.reading == null) || current.correction != null) return
   if (current.reading != null && !current.selectedExplicitly) return
   val client = current.client ?: ClientReading("", listOf(Movement(MovementType.CARGO, null, null, "", true)),
    emptyList(), true, "sin_coincidencia", emptyList(), null)
@@ -163,7 +192,8 @@ class ReadingViewModel(
    } ?: return false
   generation++ // Invalidate any contact result that belonged to a previous account snapshot.
   mutable.value = current.copy(reading = reading, selected = index, selectedExplicitly = true,
-   correction = null, correctedClients = current.correctedClients + index, notice = null, confirmed = false)
+   correction = null, correctedClients = if (correction.index < 0) setOf(0) else current.correctedClients + index,
+   contact = if (correction.index < 0) null else current.contact, notice = null, confirmed = false)
   return true
  }
  private fun edit(transform: (ClientReading) -> ClientReading) {
@@ -199,7 +229,7 @@ class ReadingViewModel(
  fun cancel() {
   generation++
   work?.cancel()
-  mutable.value = state.value.copy(photo = null, reading = null, selected = 0, selectedExplicitly = false, contact = null,
+  mutable.value = state.value.copy(photo = null, audio = null, reading = null, selected = 0, selectedExplicitly = false, contact = null,
    busy = false, confirmed = false, complicated = false, notice = null, correction = null, correctedClients = emptySet())
  }
 }

@@ -10,11 +10,11 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class AutomaticMainDeviceTest {
  @get:Rule val compose = createAndroidComposeRule<MainActivity>()
- @Test fun mainActivityUsesPhotoOnlyScreenAfterRecreation() {
-  compose.onNodeWithText("Foto → contacto → WhatsApp").assertExists()
+ @Test fun mainActivityKeepsPhotoAndDictationAfterRecreation() {
+  compose.onNodeWithText("Foto o audio → contacto → WhatsApp").assertExists()
   compose.onAllNodes(hasSetTextAction()).assertCountEquals(0)
   compose.activityRule.scenario.recreate()
-  compose.onNodeWithText("Foto → contacto → WhatsApp").assertExists()
+  compose.onNodeWithText("Foto o audio → contacto → WhatsApp").assertExists()
   compose.onAllNodes(hasSetTextAction()).assertCountEquals(0)
   compose.onNodeWithText("Confirmar y abrir WhatsApp").performScrollTo().assertIsNotEnabled()
  }

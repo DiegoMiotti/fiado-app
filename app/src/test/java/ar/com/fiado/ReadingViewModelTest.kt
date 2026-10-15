@@ -25,6 +25,72 @@ class ReadingViewModelTest {
  private fun model(store: Store = Store(), gateway: ReadingGateway = object : ReadingGateway {
   override suspend fun read(connection: Connection, jpeg: ByteArray) = ReadingJson.parse(sampleReading)
  }) = ReadingViewModel(store, gateway, photos, dispatcher)
+ @Test fun rawAudioIsSentOnceAndAiDetailsAppearBesidePrices() = runTest(dispatcher) {
+  var calls = 0
+  val bytes = byteArrayOf(1, 2, 3, 4)
+  val response = CompletableDeferred<Reading>()
+  val account = client(movement(MovementType.CARGO, "4000").copy(detail = "cerveza"),
+   movement(MovementType.CARGO, "300").copy(detail = "salchichas")).copy(serverTotal = java.math.BigDecimal("4300"))
+  val model = model(gateway = object : ReadingGateway {
+   override suspend fun read(connection: Connection, jpeg: ByteArray) = ReadingJson.parse(sampleReading)
+   override suspend fun readAudio(connection: Connection, audio: ByteArray): Reading {
+    calls++; assertArrayEquals(bytes, audio); return response.await()
+   }
+  })
+  advanceUntilIdle()
+  model.choosePhoto("fixture", autoRead = true); advanceUntilIdle()
+  val photo = model.state.value.photo
+  model.readAudio(bytes); runCurrent()
+  model.readAudio(bytes); runCurrent()
+  assertEquals(1, calls)
+  assertTrue(model.state.value.busy)
+  response.complete(Reading("audio", listOf(account), emptyList())); advanceUntilIdle()
+  assertSame(photo, model.state.value.photo)
+  assertNull(model.state.value.contact)
+  model.contact(model.session, "Leo", "23456789")
+  val message = model.state.value.automaticDraft()!!.message
+  assertTrue(message.contains("4.000  cerveza"))
+  assertTrue(message.contains("300  salchichas"))
+  assertTrue(message.contains("TOTAL  $ 4.300"))
+ }
+ @Test fun missingTokenAndInvalidAudioNeverCallBackend() = runTest(dispatcher) {
+  val gateway = object : ReadingGateway {
+   override suspend fun read(connection: Connection, jpeg: ByteArray): Reading = error("Unexpected photo")
+   override suspend fun readAudio(connection: Connection, audio: ByteArray): Reading = error("Unexpected audio")
+  }
+  val missingToken = model(Store(Connection()), gateway)
+  val ready = model(gateway = gateway)
+  advanceUntilIdle()
+  missingToken.readAudio(byteArrayOf(1)); advanceUntilIdle()
+  assertTrue(missingToken.state.value.notice!!.contains("token"))
+  ready.readAudio(byteArrayOf()); ready.readAudio(ByteArray(ReadingJson.MAX_AUDIO_BYTES + 1)); advanceUntilIdle()
+  assertNull(ready.state.value.audio)
+ }
+ @Test fun failedAudioPreservesAccountAndCancellationDropsLateResult() = runTest(dispatcher) {
+  val response = CompletableDeferred<Reading>()
+  var fail = true
+  val model = model(gateway = object : ReadingGateway {
+   override suspend fun read(connection: Connection, jpeg: ByteArray) = ReadingJson.parse(sampleReading)
+   override suspend fun readAudio(connection: Connection, audio: ByteArray): Reading {
+    if (fail) throw ReadingFailure("Audio falló")
+    return response.await()
+   }
+  })
+  advanceUntilIdle()
+  model.choosePhoto("fixture", autoRead = true); advanceUntilIdle()
+  model.contact(model.session, "Anterior", "23456789")
+  val original = model.state.value
+  model.readAudio(byteArrayOf(1)); advanceUntilIdle()
+  assertEquals(original.reading, model.state.value.reading)
+  assertEquals(original.contact, model.state.value.contact)
+  assertEquals("Audio falló", model.state.value.notice)
+  fail = false
+  model.readAudio(); runCurrent()
+  model.cancel(); response.complete(ReadingJson.parse(sampleReading)); advanceUntilIdle()
+  assertNull(model.state.value.reading)
+  assertNull(model.state.value.audio)
+  assertFalse(model.state.value.busy)
+ }
  @Test fun noCredentialNeverCallsBackend() = runTest(dispatcher) {
   var calls = 0
   val model = model(Store(Connection()), object : ReadingGateway {

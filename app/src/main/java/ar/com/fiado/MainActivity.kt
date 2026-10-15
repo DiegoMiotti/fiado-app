@@ -8,12 +8,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -28,17 +24,7 @@ class MainActivity : ComponentActivity() {
    navigationBarStyle = SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT)
   )
   setContent {
-   MaterialTheme(
-    colorScheme = lightColorScheme(
-     primary = Color(0xFF245C4B), onPrimary = Color.White,
-     primaryContainer = Color(0xFFD8E9DF), onPrimaryContainer = Color(0xFF12382D),
-     secondary = Color(0xFF8A5B22), secondaryContainer = Color(0xFFFFDDB0),
-     onSecondaryContainer = Color(0xFF3F2A0D),
-     background = Color(0xFFF7F3EC), surface = Color(0xFFFFFBF5),
-     surfaceVariant = Color(0xFFE6ECE7), outline = Color(0xFF78837C)
-    ),
-    shapes = Shapes(small = RoundedCornerShape(12.dp), medium = RoundedCornerShape(20.dp), large = RoundedCornerShape(28.dp))
-   ) { PhotoScreen() }
+   FiadoTheme { PhotoScreen() }
   }
  }
 

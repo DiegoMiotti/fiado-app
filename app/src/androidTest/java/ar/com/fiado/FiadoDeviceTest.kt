@@ -1,6 +1,8 @@
 package ar.com.fiado
 
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -18,7 +20,7 @@ class FiadoDeviceTest {
  private var opened: WhatsAppDraft? = null
  private var calls = 0
  private fun show(token: String = "fixture-only", amount: String = "4200", serverTotal: BigDecimal? = BigDecimal("11200"),
-  failReading: Boolean = false) {
+  failReading: Boolean = false, fontScale: Float = 1f) {
   compose.runOnUiThread {
    model = ReadingViewModel(object : ConnectionStorage {
     override fun read() = Connection(token = token)
@@ -38,9 +40,11 @@ class FiadoDeviceTest {
     override suspend fun prepare(uri: String) = PreparedPhoto(null, byteArrayOf(1))
    })
   }
-  compose.setContent { MaterialTheme {
+  compose.setContent {
+   val density = LocalDensity.current
+   CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) { FiadoTheme {
    ReadingPanel(model, { phone, text -> opened = WhatsAppDraft(phone, text); true }, { null })
-  } }
+  } } }
   compose.waitUntil(5000) { !model.state.value.configBusy }
  }
  private fun readPhoto() {
@@ -125,5 +129,13 @@ class FiadoDeviceTest {
   compose.runOnIdle { model.contact(model.session, "Leonardo", "23456789") }
   compose.onNodeWithText("Confirmar y abrir WhatsApp").performScrollTo().assertIsEnabled().performClick()
   compose.runOnIdle { assertTrue(opened!!.message.contains("1.500")); assertEquals(1, calls) }
+ }
+ @Test fun largeFontKeepsTotalContactAndWhatsAppActionReachable() {
+  show(fontScale = 2f); readPhoto()
+  compose.runOnIdle { model.contact(model.session, "Leonardo con un apellido largo", "23456789") }
+  compose.onNodeWithContentDescription("11.200 pesos").performScrollTo().assertIsDisplayed()
+  compose.onNodeWithText("Leonardo con un apellido largo").performScrollTo().assertIsDisplayed()
+  compose.onNodeWithText("Confirmar y abrir WhatsApp").performScrollTo().assertIsEnabled().performClick()
+  compose.runOnIdle { assertTrue(opened!!.message.contains("11.200")); assertEquals(1, calls) }
  }
 }

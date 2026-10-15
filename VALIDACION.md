@@ -1,5 +1,20 @@
 # Validación y pendientes
 
+## Rediseño visual — 15 de octubre de 2026
+
+Rama `codex/rediseno-visual-fiado`, creada desde `codex/flujo-foto-whatsapp-automatico`. [Propuesta, implementación y criterios de accesibilidad](docs/REDISENO_VISUAL.md).
+
+- `testDebugUnitTest`: **47 pruebas aprobadas**, 0 fallos y 0 errores (11 de mensaje automático, 14 de MessageRules, 9 de reglas/JSON y 13 de ViewModel).
+- `lintDebug`, `assembleDebug` y `assembleDebugAndroidTest`: **BUILD SUCCESSFUL**. Lint: **0 errores y 42 advertencias**, sin advertencias en los archivos del rediseño; corresponden a dependencias, recursos históricos y sugerencias KTX existentes.
+- APK generado: `app/build/outputs/apk/debug/app-debug.apk`. APK de pruebas compilado: `app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk`.
+- Se agregaron tres pruebas instrumentadas: importe habitual en 280 dp, total largo con fuente al 200 % y desplazamiento, y acceso al total/contacto/WhatsApp con fuente al 200 %. Las pruebas existentes usan ahora el tema real de Fiado.
+- Tras conectar el Motorola Edge 50 Fusion (Android 16), `connectedDebugAndroidTest -PisolatedDeviceTests=true --console plain --max-workers=2`: **BUILD SUCCESSFUL, 16 pruebas aprobadas, 0 fallos, 0 errores y 0 omitidas**. Se comprobaron importes largos desplazables, tarjeta de 280 dp y flujo con fuente al 200 %, además de los casos existentes de corrección, contacto, bloqueos, recreación, cifrado y fotos ficticias.
+- Las pruebas se ejecutaron con el paquete aislado `ar.com.fiado.ocrtest`. Se reinstaló y abrió esa copia como **Fiado (pruebas OCR)** para dejar el rediseño disponible en el teléfono. APK conservado en `app/build/outputs/apk/visual/Fiado-visual-pruebas.apk`; la app habitual no se reinstaló ni desinstaló.
+- Inspección visual de la pantalla inicial en vertical: encabezado, tarjeta, botones, aviso de conexión y barras del sistema sin recortes visibles. [Captura real](docs/screenshots/rediseno-inicio.png). La copia aislada no tiene token configurado; las acciones de captura y WhatsApp están deshabilitadas como corresponde.
+- Pendientes de revisión manual: TalkBack, orientación horizontal, fuente al 150 %, teclado de corrección y animaciones desactivadas. La prueba al 200 % fue instrumentada; no sustituye la inspección visual completa de todos los estados. No se hicieron consultas reales de IA ni envíos de WhatsApp.
+- No se modificaron reglas, cálculos, ViewModels, backend, IA, almacenamiento ni integración con contactos/WhatsApp. Las pruebas unitarias no consultan al proveedor real.
+- `git diff --check`: sin errores de espacios.
+
 ## Corrección opcional de lecturas — 15 de octubre de 2026
 
 Rama `codex/flujo-foto-whatsapp-automatico`.

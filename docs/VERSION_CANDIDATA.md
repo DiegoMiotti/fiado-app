@@ -27,3 +27,5 @@ Las reglas de cálculo, controles, backend, credenciales y apertura de WhatsApp 
 Las pruebas conectadas usan `ar.com.fiado.ocrtest`, separado de la instalación personal. Resultados efectivos y pendientes: [VALIDACION.md](../VALIDACION.md). El workflow histórico de publicación está fijado a `0.2.1`: publicar oficialmente esta candidata requerirá preparar un proceso de release para su versión; esta integración no publica ni reemplaza una release.
 
 APK candidato: `app/build/outputs/apk/candidate/Fiado-0.3.0-rc1.apk`. APK de prueba aislada: `app/build/outputs/apk/candidate/Fiado-0.3.0-rc1-pruebas.apk`.
+
+Validación de la candidata: 47 pruebas unitarias aprobadas (resultados reutilizados sin cambios de código), lint con 0 errores y 42 advertencias existentes, compilación correcta y **16 pruebas instrumentadas aprobadas** en Motorola Edge 50 Fusion con Android 16. Tras reconectar ADB, se actualizó la instalación habitual con `adb install -r` y se abrió correctamente; el teléfono informa versión `0.3.0-rc1`, código `4`. No se desinstaló la app ni se borraron sus datos.

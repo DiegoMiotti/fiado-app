@@ -2,11 +2,15 @@
 
 # Fiado
 
+Esta rama experimental agrega [cuentas por audio con detalle](docs/DICTADO.md), manteniendo el flujo por foto.
+
 ### Del importe al mensaje, en unos pocos toques.
 
-Prepará el cobro de hoy, sumá lo pendiente y abrí WhatsApp con el texto listo.
+Sacá una foto de la cuenta, elegí el contacto y abrí WhatsApp con el detalle y el total listos.
 
-[**📲 Descargar Fiado para Android**](https://github.com/DiegoMiotti/fiado-app/releases/download/v0.2.1/Fiado-0.2.1-debug.apk)
+[**📲 Descargar la versión manual publicada (0.2.1)**](https://github.com/DiegoMiotti/fiado-app/releases/download/v0.2.1/Fiado-0.2.1-debug.apk)
+
+La rama base, `codex/fiado-candidata-oficial`, reúne el flujo automático de IA/OCR y el nuevo diseño Material 3 en **Fiado 0.3.0-rc1**. Es la base candidata para la próxima versión y futuras funcionalidades. Su APK se genera desde el código; el enlace de descarga corresponde a la versión manual anterior. [Versión candidata](docs/VERSION_CANDIDATA.md) · [Uso del flujo automático](docs/FLUJO_AUTOMATICO.md).
 
 **Android 15 o superior · Pesos enteros · Sin crear una cuenta**
 
@@ -28,9 +32,11 @@ Capturas reales con importes ficticios, sin nombres ni teléfonos.
 
 ## Cómo funciona
 
-1. **Cargá el importe de hoy** o activá **Complicados** para sumar un saldo anterior y nuevos montos.
-2. **Revisá la vista previa** y elegí un contacto si vas a usar WhatsApp.
-3. **Copiá el mensaje o abrí WhatsApp.** Vos comprobás el destinatario y confirmás el envío allí.
+En esta variante los montos se leen automáticamente de la foto. Si la IA se equivoca, **Corregir lectura** permite remendar la cuenta; si la consulta falla, también se puede completar mirando la foto. El mensaje usa siempre el formato detallado de Complicados, con cargos que suman y pagos que restan. [Configuración y uso](docs/FLUJO_AUTOMATICO.md).
+
+1. **Sacá una foto** o elegí una guardada: la cuenta se lee automáticamente.
+2. **Elegí el contacto** y comprobá la foto, los movimientos y el mensaje listo.
+3. **Confirmá y abrí WhatsApp.** Comprobás el destinatario y confirmás el envío allí.
 
 La normalización de teléfonos está orientada a **celulares del área 11 de Argentina**. Fiado no envía mensajes automáticamente ni guarda un historial de deudas: tus anotaciones siguen siendo el registro.
 

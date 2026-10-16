@@ -4,6 +4,8 @@ import android.util.Base64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.SocketTimeoutException
@@ -46,7 +48,7 @@ class HttpReadingGateway : ReadingGateway {
     http.outputStream.use { it.write(body) }
     val status = http.responseCode
     val stream = if (status in 200..299) http.inputStream else http.errorStream
-    val bytes = stream?.use { it.readNBytes(2_000_001) } ?: byteArrayOf()
+    val bytes = stream?.use { readBackendResponse(it) } ?: byteArrayOf()
     if (bytes.size > 2_000_000) throw ReadingFailure("El backend devolvió una respuesta demasiado grande.")
     val raw = String(bytes, Charsets.UTF_8)
     if (status !in 200..299) throw ReadingFailure(ReadingJson.error(status, raw))
@@ -64,4 +66,16 @@ class HttpReadingGateway : ReadingGateway {
    } finally { http.disconnect() }
   }
  }
+}
+
+// Read at most one byte beyond the response limit using APIs available on Android 12.
+internal fun readBackendResponse(stream: InputStream): ByteArray {
+ val output = ByteArrayOutputStream()
+ val buffer = ByteArray(8192)
+ while (output.size() < 2_000_001) {
+  val count = stream.read(buffer, 0, minOf(buffer.size, 2_000_001 - output.size()))
+  if (count == -1) break
+  output.write(buffer, 0, count)
+ }
+ return output.toByteArray()
 }

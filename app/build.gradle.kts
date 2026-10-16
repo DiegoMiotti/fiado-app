@@ -8,7 +8,7 @@ android {
  compileSdk = 36
  defaultConfig {
   applicationId = "ar.com.fiado"
-  minSdk = 35
+  minSdk = 31
   targetSdk = 36
   testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   versionCode = 4
